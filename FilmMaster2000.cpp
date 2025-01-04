@@ -284,13 +284,13 @@ bool reverseVid(const string& input, const string& output, const string& mode)
     return true;
 }
 
-void swapChannel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
-{
-    if (mode == "-S"){
+// void swapChannel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
+// {
+//     if (mode == "-S"){
 
-    }
+//     }
 
-    else if (mode == "-M"){
+//     else if (mode == "-M"){
 
-    }
-}
+//     }
+// }
