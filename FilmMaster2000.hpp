@@ -1,20 +1,18 @@
 #ifndef FILMMASTER2000_HPP
 #define FILMMASTER2000_HPP
 
-#include <string>  // For std::string
-#include <vector>  // For std::vector
+#include <string> 
+#include <vector> 
 
 using namespace std;
 
-// Define the Video structure
+//indeces 1-3 determine the structure of created vector to hold pixels 1d, 2d or 3d
 struct Video1 {
     long noFrames;
     unsigned char channels;
     unsigned char height;
     unsigned char width;
-
-    // memory
-    std::vector<unsigned char> data;
+    vector<unsigned char> data;
 };
 
 struct Video2 {
@@ -22,8 +20,6 @@ struct Video2 {
     unsigned char channels;
     unsigned char height;
     unsigned char width;
-
-    // frames
     vector<vector<unsigned char>> data;
 };
 
@@ -32,22 +28,22 @@ struct Video3 {
     unsigned char channels;
     unsigned char height;
     unsigned char width;
-
-    // channels
     vector<vector<vector<unsigned char>>> data;
 };
 
-// Function to read a binary input file and populate the Video struct
-bool readbin1(const std::string& filename, Video1& video);
 
-bool readbin2(const std::string& filename, Video2& video);
+bool readbin1(const string& filename, Video1& video);
 
-bool readbin3(const std::string& filename, Video3& video);
+bool readbin2(const string& filename, Video2& video);
 
-bool reverseVid(const std::string& input, const std::string& output, const std::string& mode);
+bool readbin3(const string& filename, Video3& video);
 
-bool writebin1(const std::string& filename, const Video1& video);
+bool writebin1(const string& filename, const Video1& video);
 
+bool writebin2(const string& filename, const Video2& video);
 
+bool writebin3(const string& filename, const Video3& video);
+
+bool reverseVid(const string& input, const string& output, const string& mode);
 
 #endif
