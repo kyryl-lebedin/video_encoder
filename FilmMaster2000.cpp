@@ -17,9 +17,9 @@ void printVideo1(const Video1& video) {
     }
     cout << endl;
     cout << "Last frame pixel data: ";
-    for (size_t i = video.data.size() - video.width * video.height * video.channels; i < video.data.size(); ++i) {
-        cout << static_cast<int>(video.data[i]) << " ";
-    }
+    // for (size_t i = video.data.size() - video.width * video.height * video.channels; i < video.data.size(); ++i) {
+    //     cout << static_cast<int>(video.data[i]) << " ";
+    // }
 }
 
 void printVideo2(const Video2& video) {
@@ -60,7 +60,7 @@ bool readbin1(const string& filename, Video1& video)
     
     binVideo.close();
 
-    printVideo1(video);
+    // printVideo1(video);
 
     return true;
 }
@@ -91,7 +91,7 @@ bool readbin2(const string& filename, Video2& video)
 
     binVideo.close();
 
-    printVideo2(video);
+    // printVideo2(video);
 
     return true;
 }
@@ -147,7 +147,7 @@ bool writebin1(const string& filename, const Video1& video) {
 
     binVideo.close();
 
-    printVideo1(video);
+    // printVideo1(video);
 
     return true;
 }
@@ -282,4 +282,15 @@ bool reverseVid(const string& input, const string& output, const string& mode)
 
     } 
     return true;
+}
+
+void swapChannel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
+{
+    if (mode == "-S"){
+
+    }
+
+    else if (mode == "-M"){
+
+    }
 }

@@ -31,6 +31,13 @@ int main(int argc, char *argv[]){
     if (function == "reverse") {
         reverseVid(input, output, mode);
     }
+
+    
+    if (function == "swap_channel") {
+        unsigned char channel1 = static_cast<unsigned char>(stoi(argv[5]));
+        unsigned char channel2 = static_cast<unsigned char>(stoi(argv[6]));
+        swapChannel(input, output, mode, channel1, channel2);
+    }
     
     return 0;
 }
