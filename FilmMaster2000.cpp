@@ -197,7 +197,7 @@ bool writebin3(const string& filename, const Video3& video) {
 }
 
 
-bool reverseVid(const string& input, const string& output, const string& mode)
+bool reverse(const string& input, const string& output, const string& mode)
 {
     // old implementation
     // if (mode == "-S") {
@@ -244,7 +244,7 @@ bool reverseVid(const string& input, const string& output, const string& mode)
             return false;
         }
 
-        reverse(video.data.begin(), video.data.end());
+        std::reverse(video.data.begin(), video.data.end());
         writebin2(output, video);
 
     }
@@ -284,7 +284,7 @@ bool reverseVid(const string& input, const string& output, const string& mode)
     return true;
 }
 
-// void swapChannel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
+// void swap_channel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
 // {
 //     if (mode == "-S"){
 
