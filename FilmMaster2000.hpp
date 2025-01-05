@@ -1,36 +1,36 @@
 #ifndef FILMMASTER2000_HPP
 #define FILMMASTER2000_HPP
 
-#include <string> 
-#include <vector> 
+#include <string>
+#include <vector>
 
 using namespace std;
 
-//indeces 1-3 determine the structure of created vector to hold pixels 1d, 2d or 3d
+// indeces 1-3 determine the structure of created vector to hold pixels 1d, 2d
+// or 3d
 struct Video1 {
-    long noFrames;
-    unsigned char channels;
-    unsigned char height;
-    unsigned char width;
-    vector<unsigned char> data;
+  long noFrames;
+  unsigned char channels;
+  unsigned char height;
+  unsigned char width;
+  vector<unsigned char> data;
 };
 
 struct Video2 {
-    long noFrames;
-    unsigned char channels;
-    unsigned char height;
-    unsigned char width;
-    vector<vector<unsigned char>> data;
+  long noFrames;
+  unsigned char channels;
+  unsigned char height;
+  unsigned char width;
+  vector<vector<unsigned char>> data;
 };
 
 struct Video3 {
-    long noFrames;
-    unsigned char channels;
-    unsigned char height;
-    unsigned char width;
-    vector<vector<vector<unsigned char>>> data;
+  long noFrames;
+  unsigned char channels;
+  unsigned char height;
+  unsigned char width;
+  vector<vector<vector<unsigned char>>> data;
 };
-
 
 bool readbin1(const string& filename, Video1& video);
 
@@ -46,10 +46,13 @@ bool writebin3(const string& filename, const Video3& video);
 
 bool reverse(const string& input, const string& output, const string& mode);
 
-void swap_channel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
+void swap_channel(const string& input, const string& output, const string& mode,
+                  unsigned char channel1, unsigned char channel2);
 
-void clip_channel(const string& input, const string& output, const string& mode, unsigned char channel, unsigned char min, unsigned char max);
+void clip_channel(const string& input, const string& output, const string& mode,
+                  unsigned char channel, unsigned char min, unsigned char max);
 
-void scale_channel(const string& input, const string& output, const string& mode, unsigned char channel, float factor);
+void scale_channel(const string& input, const string& output,
+                   const string& mode, unsigned char channel, float factor);
 
 #endif
