@@ -75,9 +75,7 @@ int main(int argc, char *argv[]) {
     min = static_cast<unsigned char>(tempMin);
     max = static_cast<unsigned char>(tempMax);
 
-    cout << "Min: " << static_cast<int>(min) << endl;
-
-    // auto start = chrono::high_resolution_clock::now();
+        // auto start = chrono::high_resolution_clock::now();
     clip_channel(input, output, mode,
                  static_cast<unsigned char>(stoi(options[0])), min, max);
     // auto end = chrono::high_resolution_clock::now();

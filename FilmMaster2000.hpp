@@ -32,17 +32,17 @@ struct Video3 {
   vector<vector<vector<unsigned char>>> data;
 };
 
-bool readbin1(const string& filename, Video1& video);
+// bool readbin1(const string& filename, Video1& video);
 
-bool readbin2(const string& filename, Video2& video);
+// bool readbin2(const string& filename, Video2& video);
 
-bool readbin3(const string& filename, Video3& video);
+// bool readbin3(const string& filename, Video3& video);
 
-bool writebin1(const string& filename, const Video1& video);
+// bool writebin1(const string& filename, const Video1& video);
 
-bool writebin2(const string& filename, const Video2& video);
+// bool writebin2(const string& filename, const Video2& video);
 
-bool writebin3(const string& filename, const Video3& video);
+// bool writebin3(const string& filename, const Video3& video);
 
 bool reverse(const string& input, const string& output, const string& mode);
 
