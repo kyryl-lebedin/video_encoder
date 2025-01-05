@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -Wall -Wextra -std=c++17
+CXXFLAGS := -Wall -Wextra 
 
 LIB_NAME := libFilmMaster2000.a
 EXE_NAME := runme
@@ -14,7 +14,7 @@ $(LIB_NAME): FilmMaster2000.o
 
 
 $(EXE_NAME): main.o $(LIB_NAME)
-	$(CXX) $(CXXFLAGS) main.o -L. -lFilmMaster2000 -ltbb -o $@
+	$(CXX) $(CXXFLAGS) main.o -L. -lFilmMaster2000 -o $@
 
 # what? how? why?
 %.o: %.cpp FilmMaster2000.hpp
