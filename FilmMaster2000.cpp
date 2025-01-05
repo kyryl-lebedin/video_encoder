@@ -3,6 +3,10 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <execution>
+#include <thread>
+
+
 
 using namespace std;
 
@@ -280,17 +284,191 @@ bool reverse(const string& input, const string& output, const string& mode)
     writebin1(output, video);
     
 
-    } 
+    } else if (mode == "-V")
+    {
+        // do path from top to bottom and copy to new vector
+        Video1 video;
+        if (!readbin1(input, video)) {
+            std::cerr << "Failed to read the input video file." << std::endl;
+            return false;
+        }
+
+        // calculate frame size
+        size_t frameSize = static_cast<size_t>(video.channels) 
+                         * static_cast<size_t>(video.width) 
+                         * static_cast<size_t>(video.height);
+
+        if (video.data.size() % frameSize != 0) {
+            std::cerr << "Error: Invalid frame size. Not divisible" << std::endl;
+            return false;
+        }
+
+        int numFrames = video.noFrames;
+        std::vector<int> reversedVid(video.data.size());
+
+        for (int i = 0; i < numFrames; ++i) {
+            int startIdxOriginal = i * frameSize;
+            int startIdxReversed = (numFrames - 1 - i) * frameSize;
+
+
+            std::copy(video.data.begin() + startIdxOriginal,
+                    video.data.begin() + startIdxOriginal + frameSize,
+                    reversedVid.begin() + startIdxReversed);
+
+
+            // now write the reversed video to the output file
+        }
+        cout << "Video reversed successfully! S" << endl;
+
+    }
     return true;
 }
 
-// void swap_channel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
-// {
-//     if (mode == "-S"){
+void swapChannelsRange(Video2& video, long start, long end, int channel1, int channel2) {
+    for (long f = start; f < end; ++f) {
+        std::swap(video.data[f][channel1], video.data[f][channel2]);
+    }
+}
 
-//     }
 
-//     else if (mode == "-M"){
+void swap_channel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2)
+{
+    if (mode == "-S"){
+        Video3 video;
+        readbin3(input, video);
 
-//     }
-// }
+        for (long f = 0; f < video.noFrames; ++f) {
+            std::swap(video.data[f][channel1], video.data[f][channel2]);
+        }
+        writebin3(output, video);
+    }
+
+    else if (mode == "-M"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            std::swap(video.data[f][channel1], video.data[f][channel2]);
+        }
+        writebin3(output, video);
+    }
+    
+    else if (mode == "-V"){
+        // Video1 video;
+        // readbin1(input, video);
+
+        // size_t frameSize = static_cast<size_t>(video.channels) 
+        //                  * static_cast<size_t>(video.width) 
+        //                  * static_cast<size_t>(video.height);
+
+        // size_t channelSize = static_cast<size_t>(video.width) 
+        //                    * static_cast<size_t>(video.height);
+    
+        // for (long f = 0; f < video.noFrames; ++f) {
+        //     size_t frameOffset = f * frameSize;
+        //     size_t channelOffset1 = static_cast<size_t>(channel1) * channelSize + frameOffset;
+        //     size_t channelOffset2 = static_cast<size_t>(channel2) * channelSize + frameOffset;
+
+        //     for (size_t i = 0; i < channelSize; ++i) {
+        //         swap(video.data[channelOffset1 + i], video.data[channelOffset2 + i]);
+        //     }
+        // writebin1(output, video);
+        // }
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            std::swap(video.data[f][channel1], video.data[f][channel2]);
+        }
+        writebin3(output, video);
+    }
+}
+
+void clip_channel(const string& input, const string& output, const string& mode, unsigned char channel, unsigned char min, unsigned char max)
+{
+    if (mode == "-S"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            for (size_t i = 0; i < video.width * video.height; ++i) {
+                video.data[f][channel-1][i] = std::max(min, std::min(max, video.data[f][channel][i]));
+            }
+            
+        }
+        writebin3(output, video);
+    }
+    else if (mode == "-M"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            for (size_t i = 0; i < video.width * video.height; ++i) {
+                video.data[f][channel-1][i] = std::max(min, std::min(max, video.data[f][channel][i]));
+            }
+            
+        }
+        writebin3(output, video);
+    }
+    else if (mode == "-V"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            for (size_t i = 0; i < video.width * video.height; ++i) {
+                video.data[f][channel-1][i] = std::max(min, std::min(max, video.data[f][channel][i]));
+            }
+            
+        }
+        writebin3(output, video);
+    }
+}
+
+void scale_channel(const string& input, const string& output, const string& mode, unsigned char channel, float factor)
+{
+    if (mode == "-S"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            for (size_t i = 0; i < video.width * video.height; ++i) {
+                video.data[f][channel-1][i] = video.data[f][channel-1][i] * factor;
+            }
+            
+        }
+        writebin3(output, video);
+    }
+    else if (mode == "-M"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            for (size_t i = 0; i < video.width * video.height; ++i) {
+                video.data[f][channel-1][i] = video.data[f][channel-1][i] * factor;
+                cout << static_cast<int>(video.data[f][channel-1][i]) << " ";
+                
+            }
+            
+        }
+        writebin3(output, video);
+    }
+    else if (mode == "-V"){
+        Video3 video;
+        readbin3(input, video);
+
+        for (long f = 0; f < video.noFrames; ++f) {
+            for (size_t i = 0; i < video.width * video.height; ++i) {
+                video.data[f][channel-1][i] = video.data[f][channel-1][i] * factor;
+                
+            }
+            
+        }
+        writebin3(output, video);
+    }
+}
+
+
+
+
+
+

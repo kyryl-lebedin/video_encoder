@@ -46,6 +46,10 @@ bool writebin3(const string& filename, const Video3& video);
 
 bool reverse(const string& input, const string& output, const string& mode);
 
-// void swap_channel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
+void swap_channel(const string& input, const string& output, const string& mode, unsigned char channel1, unsigned char channel2);
+
+void clip_channel(const string& input, const string& output, const string& mode, unsigned char channel, unsigned char min, unsigned char max);
+
+void scale_channel(const string& input, const string& output, const string& mode, unsigned char channel, float factor);
 
 #endif

@@ -1,3 +1,7 @@
 .vscode
 runme
 data
+*.bin
+*.o
+*.a
+*.py
