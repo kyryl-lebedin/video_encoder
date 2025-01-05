@@ -34,9 +34,10 @@ int main(int argc, char *argv[]) {
   // cout << "Function: " << function << endl;
   // cout << "Options: ";
   // for (const string &opt : options) {
-  //     cout << opt << " ";
+  //   cout << opt << " ";
   // }
   // cout << endl;
+  // cout << options[0] << endl;
 
   if (function == "reverse") {
     // add time measurement
@@ -47,8 +48,19 @@ int main(int argc, char *argv[]) {
     // cout << "Time taken for reverse function: " << elapsed.count() << "
     // seconds" << endl;
   } else if (function == "swap_channel") {
-    unsigned char channel1 = static_cast<unsigned char>(stoi(options[0]));
-    unsigned char channel2 = static_cast<unsigned char>(stoi(options[1]));
+    unsigned char channel1, channel2;
+
+    stringstream ss(options[0]);
+    int tempChannel1, tempChannel2;
+
+    char delimiter;
+
+    ss >> tempChannel1 >> delimiter >> tempChannel2;
+
+    channel1 = static_cast<unsigned char>(tempChannel1);
+    channel2 = static_cast<unsigned char>(tempChannel2);
+    // cout << "Channel 1: " << static_cast<int>(channel2) << endl;
+
     // auto start = chrono::high_resolution_clock::now();
     swap_channel(input, output, mode, channel1, channel2);
     // auto end = chrono::high_resolution_clock::now();
@@ -75,7 +87,10 @@ int main(int argc, char *argv[]) {
     min = static_cast<unsigned char>(tempMin);
     max = static_cast<unsigned char>(tempMax);
 
-        // auto start = chrono::high_resolution_clock::now();
+    // cout << "Min: " << static_cast<int>(min)
+    //      << " Max: " << static_cast<int>(max) << endl;
+
+    // auto start = chrono::high_resolution_clock::now();
     clip_channel(input, output, mode,
                  static_cast<unsigned char>(stoi(options[0])), min, max);
     // auto end = chrono::high_resolution_clock::now();

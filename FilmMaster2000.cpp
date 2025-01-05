@@ -42,6 +42,26 @@ void printVideo2(const Video2& video) {
   }
 }
 
+void printVideo3(const Video3& video) {
+  cout << "Number of frames: " << video.noFrames << endl;
+  cout << "Number of channels: " << static_cast<int>(video.channels) << endl;
+  cout << "Width: " << static_cast<int>(video.width) << endl;
+  cout << "Height: " << static_cast<int>(video.height) << endl;
+  cout << "First frame pixel data: ";
+  // for (size_t i = 0; i < video.width * video.height; ++i) {
+  //   cout << static_cast<int>(video.data[0][0][i]) << " ";
+  // }
+  // cout << endl;
+  // cout << "Last frame pixel data: ";
+  // for (size_t i = video.data[video.noFrames - 1][video.channels - 1].size() -
+  //                 video.width * video.height;
+  //      i < video.data[video.noFrames - 1][video.channels - 1].size(); ++i) {
+  //   cout << static_cast<int>(
+  //               video.data[video.noFrames - 1][video.channels - 1][i])
+  //        << " ";
+  // }
+}
+
 // indeces 1-3 determine the structure of created vector to hold pixels 1d, 2d
 // or 3d
 
@@ -128,6 +148,7 @@ bool readbin3(const string& filename, Video3& video) {
     }
   }
 
+  // printVideo3(video);
   binVideo.close();
   return true;
 }
@@ -206,45 +227,12 @@ bool writebin3(const string& filename, const Video3& video) {
 
   binVideo.close();
 
+  // printVideo3(video);
+
   return true;
 }
 
 bool reverse(const string& input, const string& output, const string& mode) {
-  // old implementation
-  // if (mode == "-S") {
-  //     // do path from top to bottom and copy to new vector
-  //     Video1 video;
-  //     if (!readbin1(input, video)) {
-  //         std::cerr << "Failed to read the input video file." << std::endl;
-  //         return false;
-  //     }
-
-  //     // calculate frame size
-  //     size_t frameSize = static_cast<size_t>(video.channels)
-  //                      * static_cast<size_t>(video.width)
-  //                      * static_cast<size_t>(video.height);
-
-  //     if (video.data.size() % frameSize != 0) {
-  //         std::cerr << "Error: Invalid frame size. Not divisible" <<
-  //         std::endl; return false;
-  //     }
-
-  //     int numFrames = video.noFrames;
-  //     std::vector<int> reversedVid(video.data.size());
-
-  //     for (int i = 0; i < numFrames; ++i) {
-  //     int startIdxOriginal = i * frameSize;
-  //     int startIdxReversed = (numFrames - 1 - i) * frameSize;
-
-  //     std::copy(video.data.begin() + startIdxOriginal,
-  //               video.data.begin() + startIdxOriginal + frameSize,
-  //               reversedVid.begin() + startIdxReversed);
-
-  //     // now write the reversed video to the output file
-  //     }
-  //     cout << "Video reversed successfully! S" << endl;
-
-  // }
   if (mode == "-S") {
     // use cpp reverse on 2d
     Video2 video;
@@ -317,16 +305,8 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
       // now write the reversed video to the output file
     }
-    cout << "Video reversed successfully! S" << endl;
   }
   return true;
-}
-
-void swapChannelsRange(Video2& video, long start, long end, int channel1,
-                       int channel2) {
-  for (long f = start; f < end; ++f) {
-    std::swap(video.data[f][channel1], video.data[f][channel2]);
-  }
 }
 
 void swap_channel(const string& input, const string& output, const string& mode,
@@ -336,7 +316,7 @@ void swap_channel(const string& input, const string& output, const string& mode,
     readbin3(input, video);
 
     for (long f = 0; f < video.noFrames; ++f) {
-      std::swap(video.data[f][channel1], video.data[f][channel2]);
+      std::swap(video.data[f][channel1 - 1], video.data[f][channel2 - 1]);
     }
     writebin3(output, video);
   }
@@ -346,7 +326,7 @@ void swap_channel(const string& input, const string& output, const string& mode,
     readbin3(input, video);
 
     for (long f = 0; f < video.noFrames; ++f) {
-      std::swap(video.data[f][channel1], video.data[f][channel2]);
+      std::swap(video.data[f][channel1 - 1], video.data[f][channel2 - 1]);
     }
     writebin3(output, video);
   }
@@ -374,12 +354,14 @@ void swap_channel(const string& input, const string& output, const string& mode,
     //     }
     // writebin1(output, video);
     // }
+
     Video3 video;
     readbin3(input, video);
 
     for (long f = 0; f < video.noFrames; ++f) {
-      std::swap(video.data[f][channel1], video.data[f][channel2]);
+      std::swap(video.data[f][channel1 - 1], video.data[f][channel2 - 1]);
     }
+
     writebin3(output, video);
   }
 }
@@ -441,7 +423,6 @@ void scale_channel(const string& input, const string& output,
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
         video.data[f][channel - 1][i] = video.data[f][channel - 1][i] * factor;
-        cout << static_cast<int>(video.data[f][channel - 1][i]) << " ";
       }
     }
     writebin3(output, video);
