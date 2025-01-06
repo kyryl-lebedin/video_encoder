@@ -286,63 +286,93 @@ bool reverse(const string& input, const string& output, const string& mode) {
     writebin1(output, video);
 
   } else if (mode == "-M") {
-    // swap inner and outer frames in 1d array
+    // // swap inner and outer frames in 1d array
+    // Video1 video;
+    // if (!readbin1(input, video)) {
+    //   cerr << "Failed to read the input video file." << endl;
+    //   return false;
+    // }
+    // size_t frameSize = static_cast<size_t>(video.channels) *
+    //                    static_cast<size_t>(video.width) *
+    //                    static_cast<size_t>(video.height);
+
+    // long start = 0;
+    // long end = video.noFrames - 1;
+
+    // while (start < end) {
+    //   size_t startOffset = static_cast<size_t>(start) * frameSize;
+    //   size_t endOffset = static_cast<size_t>(end) * frameSize;
+
+    //   for (size_t i = 0; i < frameSize; ++i) {
+    //     swap(video.data[startOffset + i], video.data[endOffset + i]);
+    //   }
+
+    //   ++start;
+    //   --end;
+    // }
+
+    // writebin1(output, video);
+
     Video1 video;
-    if (!readbin1(input, video)) {
-      cerr << "Failed to read the input video file." << endl;
-      return false;
-    }
-    size_t frameSize = static_cast<size_t>(video.channels) *
-                       static_cast<size_t>(video.width) *
-                       static_cast<size_t>(video.height);
+    readbin1(input, video);
+    size_t frameSize = (size_t)video.channels * video.width * video.height;
+    std::vector<unsigned char> reversedData(video.data.size());
+    for (long i = 0; i < video.noFrames; ++i) {
+      long j = video.noFrames - 1 - i;
+      const unsigned char* src = &video.data[i * frameSize];
+      unsigned char* dst = &reversedData[j * frameSize];
 
-    long start = 0;
-    long end = video.noFrames - 1;
-
-    while (start < end) {
-      size_t startOffset = static_cast<size_t>(start) * frameSize;
-      size_t endOffset = static_cast<size_t>(end) * frameSize;
-
-      for (size_t i = 0; i < frameSize; ++i) {
-        swap(video.data[startOffset + i], video.data[endOffset + i]);
-      }
-
-      ++start;
-      --end;
+      std::memcpy(dst, src, frameSize);
     }
 
+    video.data = reversedData;
     writebin1(output, video);
   } else if (mode == "-V") {
-    // do path from top to bottom and copy to new vector
+    // // do path from top to bottom and copy to new vector
+    // Video1 video;
+    // if (!readbin1(input, video)) {
+    //   std::cerr << "Failed to read the input video file." << std::endl;
+    //   return false;
+    // }
+
+    // // calculate frame size
+    // size_t frameSize = static_cast<size_t>(video.channels) *
+    //                    static_cast<size_t>(video.width) *
+    //                    static_cast<size_t>(video.height);
+
+    // if (video.data.size() % frameSize != 0) {
+    //   std::cerr << "Error: Invalid frame size. Not divisible" << std::endl;
+    //   return false;
+    // }
+
+    // int numFrames = video.noFrames;
+    // std::vector<int> reversedVid(video.data.size());
+
+    // for (int i = 0; i < numFrames; ++i) {
+    //   int startIdxOriginal = i * frameSize;
+    //   int startIdxReversed = (numFrames - 1 - i) * frameSize;
+
+    //   std::copy(video.data.begin() + startIdxOriginal,
+    //             video.data.begin() + startIdxOriginal + frameSize,
+    //             reversedVid.begin() + startIdxReversed);
+
+    //   // now write the reversed video to the output file
+    // }
+
     Video1 video;
-    if (!readbin1(input, video)) {
-      std::cerr << "Failed to read the input video file." << std::endl;
-      return false;
+    readbin1(input, video);
+    size_t frameSize = (size_t)video.channels * video.width * video.height;
+    std::vector<unsigned char> reversedData(video.data.size());
+    for (long i = 0; i < video.noFrames; ++i) {
+      long j = video.noFrames - 1 - i;
+      const unsigned char* src = &video.data[i * frameSize];
+      unsigned char* dst = &reversedData[j * frameSize];
+
+      std::memcpy(dst, src, frameSize);
     }
 
-    // calculate frame size
-    size_t frameSize = static_cast<size_t>(video.channels) *
-                       static_cast<size_t>(video.width) *
-                       static_cast<size_t>(video.height);
-
-    if (video.data.size() % frameSize != 0) {
-      std::cerr << "Error: Invalid frame size. Not divisible" << std::endl;
-      return false;
-    }
-
-    int numFrames = video.noFrames;
-    std::vector<int> reversedVid(video.data.size());
-
-    for (int i = 0; i < numFrames; ++i) {
-      int startIdxOriginal = i * frameSize;
-      int startIdxReversed = (numFrames - 1 - i) * frameSize;
-
-      std::copy(video.data.begin() + startIdxOriginal,
-                video.data.begin() + startIdxOriginal + frameSize,
-                reversedVid.begin() + startIdxReversed);
-
-      // now write the reversed video to the output file
-    }
+    video.data = reversedData;
+    writebin1(output, video);
   }
   return true;
 }
