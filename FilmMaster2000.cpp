@@ -270,65 +270,20 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     // writebin1(output, video);
 
-    // Video1 video;
-    // readbin1(input, video);
-    // size_t frameSize = (size_t)video.channels * video.width * video.height;
-    // std::vector<unsigned char> reversedData(video.data.size());
-    // for (long i = 0; i < video.noFrames; ++i) {
-    //   long j = video.noFrames - 1 - i;
-    //   const unsigned char* src = &video.data[i * frameSize];
-    //   unsigned char* dst = &reversedData[j * frameSize];
+    Video1 video;
+    readbin1(input, video);
+    size_t frameSize = (size_t)video.channels * video.width * video.height;
+    std::vector<unsigned char> reversedData(video.data.size());
+    for (long i = 0; i < video.noFrames; ++i) {
+      long j = video.noFrames - 1 - i;
+      const unsigned char* src = &video.data[i * frameSize];
+      unsigned char* dst = &reversedData[j * frameSize];
 
-    //   std::memcpy(dst, src, frameSize);
-    // }
-
-    // video.data = reversedData;
-    // writebin1(output, video);
-
-    ifstream video(input, ios::binary);
-    if (!video.is_open()) {
-      cerr << "Failed to open the input video file." << endl;
-      return false;
+      std::memcpy(dst, src, frameSize);
     }
 
-    long noFrames;
-    unsigned char channels;
-    unsigned char height;
-    unsigned char width;
-
-    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
-    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
-    video.read(reinterpret_cast<char*>(&height), sizeof(height));
-    video.read(reinterpret_cast<char*>(&width), sizeof(width));
-
-    ofstream reversedVideo(output, ios::binary);
-    if (!reversedVideo.is_open()) {
-      cerr << "Failed to open the output video file." << endl;
-      return false;
-    }
-
-    reversedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
-    reversedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
-    reversedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
-    reversedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
-
-    size_t frameSize = static_cast<size_t>(channels) *
-                       static_cast<size_t>(width) * static_cast<size_t>(height);
-
-    // maybe just unisgned char
-    vector<char> frameBuffer(frameSize);
-
-    streamoff headerSize = sizeof(noFrames) + 3 * sizeof(unsigned char);
-
-    for (long i = noFrames - 1; i >= 0; --i) {
-      streamoff offset =
-          headerSize + static_cast<std::streamoff>(i) * frameSize;
-      video.seekg(offset, ios::beg);
-      video.read(frameBuffer.data(), frameSize);
-      reversedVideo.write(frameBuffer.data(), frameSize);
-    }
-    video.close();
-    reversedVideo.close();
+    video.data = reversedData;
+    writebin1(output, video);
 
   } else if (mode == "-M") {
     // swap inner and outer frames in 1d array
@@ -437,60 +392,15 @@ bool reverse(const string& input, const string& output, const string& mode) {
     //   // now write the reversed video to the output file
     // }
 
-    // // use cpp reverse on 2d
-    // Video2 video;
-    // if (!readbin2(input, video)) {
-    //   cerr << "Failed to read the input video file." << endl;
-    //   return false;
-    // }
-
-    // std::reverse(video.data.begin(), video.data.end());
-    // writebin2(output, video);
-
-    ifstream video(input, ios::binary);
-    if (!video.is_open()) {
-      cerr << "Failed to open the input video file." << endl;
+    // use cpp reverse on 2d
+    Video2 video;
+    if (!readbin2(input, video)) {
+      cerr << "Failed to read the input video file." << endl;
       return false;
     }
 
-    long noFrames;
-    unsigned char channels;
-    unsigned char height;
-    unsigned char width;
-
-    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
-    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
-    video.read(reinterpret_cast<char*>(&height), sizeof(height));
-    video.read(reinterpret_cast<char*>(&width), sizeof(width));
-
-    ofstream reversedVideo(output, ios::binary);
-    if (!reversedVideo.is_open()) {
-      cerr << "Failed to open the output video file." << endl;
-      return false;
-    }
-
-    reversedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
-    reversedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
-    reversedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
-    reversedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
-
-    size_t frameSize = static_cast<size_t>(channels) *
-                       static_cast<size_t>(width) * static_cast<size_t>(height);
-
-    // maybe just unisgned char
-    vector<char> frameBuffer(frameSize);
-
-    streamoff headerSize = sizeof(noFrames) + 3 * sizeof(unsigned char);
-
-    for (long i = noFrames - 1; i >= 0; --i) {
-      streamoff offset =
-          headerSize + static_cast<std::streamoff>(i) * frameSize;
-      video.seekg(offset, ios::beg);
-      video.read(frameBuffer.data(), frameSize);
-      reversedVideo.write(frameBuffer.data(), frameSize);
-    }
-    video.close();
-    reversedVideo.close();
+    std::reverse(video.data.begin(), video.data.end());
+    writebin2(output, video);
   }
   return true;
 }
@@ -508,39 +418,49 @@ void swap_channel(const string& input, const string& output, const string& mode,
   }
 
   else if (mode == "-M") {
-    Video3 video;
-    readbin3(input, video);
-
-    for (long f = 0; f < video.noFrames; ++f) {
-      std::swap(video.data[f][channel1 - 1], video.data[f][channel2 - 1]);
+    ifstream video(input, ios::binary);
+    if (!video.is_open()) {
+      cerr << "Failed to open the input video file." << endl;
     }
-    writebin3(output, video);
+
+    long noFrames;
+    unsigned char channels;
+    unsigned char height;
+    unsigned char width;
+
+    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    ofstream swappedVideo(output, ios::binary);
+
+    swappedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    swappedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    swappedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    swappedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
+
+    size_t frameSize = static_cast<size_t>(channels) *
+                       static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    size_t channelSize =
+        static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    vector<char> frameBuffer(frameSize);
+
+    // I don't like this iterator tho
+    for (long i = 0; i < noFrames; ++i) {
+      video.read(frameBuffer.data(), frameSize);
+      for (size_t j = 0; j < channelSize; ++j) {
+        size_t pixelOffset1 = channelSize * (channel1 - 1) + j;
+        size_t pixelOffset2 = channelSize * (channel2 - 1) + j;
+        std::swap(frameBuffer[pixelOffset1], frameBuffer[pixelOffset2]);
+      }
+      swappedVideo.write(frameBuffer.data(), frameSize);
+    }
   }
 
   else if (mode == "-V") {
-    // Video1 video;
-    // readbin1(input, video);
-
-    // size_t frameSize = static_cast<size_t>(video.channels)
-    //                  * static_cast<size_t>(video.width)
-    //                  * static_cast<size_t>(video.height);
-
-    // size_t channelSize = static_cast<size_t>(video.width)
-    //                    * static_cast<size_t>(video.height);
-
-    // for (long f = 0; f < video.noFrames; ++f) {
-    //     size_t frameOffset = f * frameSize;
-    //     size_t channelOffset1 = static_cast<size_t>(channel1) * channelSize
-    //     + frameOffset; size_t channelOffset2 =
-    //     static_cast<size_t>(channel2) * channelSize + frameOffset;
-
-    //     for (size_t i = 0; i < channelSize; ++i) {
-    //         swap(video.data[channelOffset1 + i], video.data[channelOffset2
-    //         + i]);
-    //     }
-    // writebin1(output, video);
-    // }
-
     Video3 video;
     readbin3(input, video);
 
