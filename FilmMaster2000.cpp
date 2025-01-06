@@ -234,19 +234,41 @@ bool writebin3(const string& filename, const Video3& video) {
 
 bool reverse(const string& input, const string& output, const string& mode) {
   if (mode == "-S") {
-    // use cpp reverse on 2d
-    Video2 video;
-    if (!readbin2(input, video)) {
-      cerr << "Failed to read the input video file." << endl;
-      return false;
+    // // use cpp reverse on 2d
+    // Video2 video;
+    // if (!readbin2(input, video)) {
+    //   cerr << "Failed to read the input video file." << endl;
+    //   return false;
+    // }
+
+    // std::reverse(video.data.begin(), video.data.end());
+    // writebin2(output, video);
+
+    // 1d solution with pointers
+
+    Video1 video;
+
+    readbin1(input, video);
+
+    const size_t frameSize = static_cast<size_t>(video.channels) *
+                             static_cast<size_t>(video.width) *
+                             static_cast<size_t>(video.height);
+
+    for (int i = 0; i < video.noFrames / 2; ++i) {
+      const long j = video.noFrames - i - 1;
+
+      unsigned char* start = video.data.data() + i * frameSize;
+
+      unsigned char* end = video.data.data() + j * frameSize;
+
+      for (size_t k = 0; k < frameSize; ++k) {
+        std::swap(start[k], end[k]);
+      }
     }
 
-    std::reverse(video.data.begin(), video.data.end());
-    writebin2(output, video);
+    writebin1(output, video);
 
-  }
-
-  else if (mode == "-M") {
+  } else if (mode == "-M") {
     // swap inner and outer frames in 1d array
     Video1 video;
     if (!readbin1(input, video)) {
@@ -273,7 +295,6 @@ bool reverse(const string& input, const string& output, const string& mode) {
     }
 
     writebin1(output, video);
-
   } else if (mode == "-V") {
     // do path from top to bottom and copy to new vector
     Video1 video;
@@ -344,13 +365,13 @@ void swap_channel(const string& input, const string& output, const string& mode,
 
     // for (long f = 0; f < video.noFrames; ++f) {
     //     size_t frameOffset = f * frameSize;
-    //     size_t channelOffset1 = static_cast<size_t>(channel1) * channelSize +
-    //     frameOffset; size_t channelOffset2 = static_cast<size_t>(channel2) *
-    //     channelSize + frameOffset;
+    //     size_t channelOffset1 = static_cast<size_t>(channel1) * channelSize
+    //     + frameOffset; size_t channelOffset2 =
+    //     static_cast<size_t>(channel2) * channelSize + frameOffset;
 
     //     for (size_t i = 0; i < channelSize; ++i) {
-    //         swap(video.data[channelOffset1 + i], video.data[channelOffset2 +
-    //         i]);
+    //         swap(video.data[channelOffset1 + i], video.data[channelOffset2
+    //         + i]);
     //     }
     // writebin1(output, video);
     // }
