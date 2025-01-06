@@ -61,14 +61,14 @@ int main(int argc, char *argv[]) {
 
     channel1 = static_cast<unsigned char>(tempChannel1);
     channel2 = static_cast<unsigned char>(tempChannel2);
-    // cout << "Channel 1: " << static_cast<int>(channel2) << endl;
+    cout << "Channel 1: " << static_cast<int>(channel2) << endl;
 
-    // auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     swap_channel(input, output, mode, channel1, channel2);
-    // auto end = chrono::high_resolution_clock::now();
-    // chrono::duration<double> elapsed = end - start;
-    // cout << "Time taken for swap_channels: " << elapsed.count() << " seconds"
-    // << endl;
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Time taken for swap_channels: " << elapsed.count() << " seconds"
+         << endl;
   } else if (function == "clip_channel") {
     unsigned char max, min;
     options[1].erase(0, 1);
@@ -89,16 +89,13 @@ int main(int argc, char *argv[]) {
     min = static_cast<unsigned char>(tempMin);
     max = static_cast<unsigned char>(tempMax);
 
-    // cout << "Min: " << static_cast<int>(min)
-    //      << " Max: " << static_cast<int>(max) << endl;
-
-    // auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     clip_channel(input, output, mode,
                  static_cast<unsigned char>(stoi(options[0])), min, max);
-    // auto end = chrono::high_resolution_clock::now();
-    // chrono::duration<double> elapsed = end - start;
-    // cout << "Time taken for clip_channel: " << elapsed.count() << " seconds"
-    // << endl;
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Time taken for clip_channel: " << elapsed.count() << " seconds"
+         << endl;
 
   }
 
@@ -106,12 +103,12 @@ int main(int argc, char *argv[]) {
     unsigned char channel = static_cast<unsigned char>(stoi(options[0]));
     float scale_factor = stof(options[1]);
 
-    // auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     scale_channel(input, output, mode, channel, scale_factor);
-    // auto end = chrono::high_resolution_clock::now();
-    // chrono::duration<double> elapsed = end - start;
-    // cout << "Time taken for scale_channel: " << elapsed.count() << " seconds"
-    // << endl;
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Time taken for scale_channel: " << elapsed.count() << " seconds"
+         << endl;
 
   }
 

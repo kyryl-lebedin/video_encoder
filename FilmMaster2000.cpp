@@ -50,18 +50,18 @@ void printVideo3(const Video3& video) {
   cout << "Width: " << static_cast<int>(video.width) << endl;
   cout << "Height: " << static_cast<int>(video.height) << endl;
   cout << "First frame pixel data: ";
-  // for (size_t i = 0; i < video.width * video.height; ++i) {
-  //   cout << static_cast<int>(video.data[0][0][i]) << " ";
-  // }
-  // cout << endl;
-  // cout << "Last frame pixel data: ";
-  // for (size_t i = video.data[video.noFrames - 1][video.channels - 1].size() -
-  //                 video.width * video.height;
-  //      i < video.data[video.noFrames - 1][video.channels - 1].size(); ++i) {
-  //   cout << static_cast<int>(
-  //               video.data[video.noFrames - 1][video.channels - 1][i])
-  //        << " ";
-  // }
+  for (size_t i = 0; i < video.width * video.height; ++i) {
+    cout << static_cast<int>(video.data[0][0][i]) << " ";
+  }
+  cout << endl;
+  cout << "Last frame pixel data: ";
+  for (size_t i = video.data[video.noFrames - 1][video.channels - 1].size() -
+                  video.width * video.height;
+       i < video.data[video.noFrames - 1][video.channels - 1].size(); ++i) {
+    cout << static_cast<int>(
+                video.data[video.noFrames - 1][video.channels - 1][i])
+         << " ";
+  }
 }
 
 // indeces 1-3 determine the structure of created vector to hold pixels 1d, 2d
@@ -418,6 +418,51 @@ void swap_channel(const string& input, const string& output, const string& mode,
   }
 
   else if (mode == "-M") {
+    // ifstream video(input, ios::binary);
+    // if (!video.is_open()) {
+    //   cerr << "Failed to open the input video file." << endl;
+    // }
+
+    // long noFrames;
+    // unsigned char channels;
+    // unsigned char height;
+    // unsigned char width;
+
+    // video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    // video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    // video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    // video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    // ofstream swappedVideo(output, ios::binary);
+
+    // swappedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    // swappedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    // swappedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    // swappedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
+
+    // size_t frameSize = static_cast<size_t>(channels) *
+    //                    static_cast<size_t>(width) *
+    //                    static_cast<size_t>(height);
+
+    // size_t channelSize =
+    //     static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    // vector<char> frameBuffer(frameSize);
+
+    // // I don't like this iterator tho
+    // for (long i = 0; i < noFrames; ++i) {
+    //   video.read(frameBuffer.data(), frameSize);
+    //   for (size_t j = 0; j < channelSize; ++j) {
+    //     size_t pixelOffset1 = channelSize * (channel1 - 1) + j;
+    //     size_t pixelOffset2 = channelSize * (channel2 - 1) + j;
+    //     std::swap(frameBuffer[pixelOffset1], frameBuffer[pixelOffset2]);
+    //   }
+    //   swappedVideo.write(frameBuffer.data(), frameSize);
+    // }
+
+    // video.close();
+    // swappedVideo.close();
+
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Failed to open the input video file." << endl;
@@ -440,35 +485,94 @@ void swap_channel(const string& input, const string& output, const string& mode,
     swappedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
     swappedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
 
-    size_t frameSize = static_cast<size_t>(channels) *
-                       static_cast<size_t>(width) * static_cast<size_t>(height);
+    size_t channelSize =
+        static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    vector<vector<char>> frameBuffer(channels, vector<char>(channelSize));
+
+    // swap two channels in frame and write to output
+    for (long i = 0; i < noFrames; ++i) {
+      for (int j = 0; j < channels; ++j) {
+        video.read(frameBuffer[j].data(), channelSize);
+      }
+
+      swap(frameBuffer[channel1 - 1], frameBuffer[channel2 - 1]);
+
+      for (int j = 0; j < channels; ++j) {
+        swappedVideo.write(frameBuffer[j].data(), channelSize);
+      }
+    }
+
+    video.close();
+    swappedVideo.close();
+
+    // // I don't like this iterator tho
+    // for (long i = 0; i < noFrames; ++i) {
+    //   video.read(frameBuffer.data(), frameSize);
+    //   for (size_t j = 0; j < channelSize; ++j) {
+    //     size_t pixelOffset1 = channelSize * (channel1 - 1) + j;
+    //     size_t pixelOffset2 = channelSize * (channel2 - 1) + j;
+    //     std::swap(frameBuffer[pixelOffset1], frameBuffer[pixelOffset2]);
+    //   }
+    //   swappedVideo.write(frameBuffer.data(), frameSize);
+    // }
+
+  }
+
+  else if (mode == "-V") {
+    ifstream video(input, ios::binary);
+    if (!video.is_open()) {
+      cerr << "Failed to open the input video file." << endl;
+    }
+
+    long noFrames;
+    unsigned char channels;
+    unsigned char height;
+    unsigned char width;
+
+    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    ofstream swappedVideo(output, ios::binary);
+
+    swappedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    swappedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    swappedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    swappedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
 
     size_t channelSize =
         static_cast<size_t>(width) * static_cast<size_t>(height);
 
-    vector<char> frameBuffer(frameSize);
+    vector<vector<char>> frameBuffer(channels, vector<char>(channelSize));
 
-    // I don't like this iterator tho
+    // swap two channels in frame and write to output
     for (long i = 0; i < noFrames; ++i) {
-      video.read(frameBuffer.data(), frameSize);
-      for (size_t j = 0; j < channelSize; ++j) {
-        size_t pixelOffset1 = channelSize * (channel1 - 1) + j;
-        size_t pixelOffset2 = channelSize * (channel2 - 1) + j;
-        std::swap(frameBuffer[pixelOffset1], frameBuffer[pixelOffset2]);
+      for (int j = 0; j < channels; ++j) {
+        video.read(frameBuffer[j].data(), channelSize);
       }
-      swappedVideo.write(frameBuffer.data(), frameSize);
-    }
-  }
 
-  else if (mode == "-V") {
-    Video3 video;
-    readbin3(input, video);
+      swap(frameBuffer[channel1 - 1], frameBuffer[channel2 - 1]);
 
-    for (long f = 0; f < video.noFrames; ++f) {
-      std::swap(video.data[f][channel1 - 1], video.data[f][channel2 - 1]);
+      for (int j = 0; j < channels; ++j) {
+        swappedVideo.write(frameBuffer[j].data(), channelSize);
+      }
     }
 
-    writebin3(output, video);
+    video.close();
+    swappedVideo.close();
+
+    // // I don't like this iterator tho
+    // for (long i = 0; i < noFrames; ++i) {
+    //   video.read(frameBuffer.data(), frameSize);
+    //   for (size_t j = 0; j < channelSize; ++j) {
+    //     size_t pixelOffset1 = channelSize * (channel1 - 1) + j;
+    //     size_t pixelOffset2 = channelSize * (channel2 - 1) + j;
+    //     std::swap(frameBuffer[pixelOffset1], frameBuffer[pixelOffset2]);
+    //   }
+    //   swappedVideo.write(frameBuffer.data(), frameSize);
+    // }
   }
 }
 
@@ -482,28 +586,74 @@ void clip_channel(const string& input, const string& output, const string& mode,
       for (size_t i = 0; i < video.width * video.height; ++i) {
         video.data[f][channel - 1][i] =
             std::max(min, std::min(max, video.data[f][channel - 1][i]));
+        // cout << static_cast<int>(video.data[f][channel - 1][i]) << " ";
       }
     }
     writebin3(output, video);
   } else if (mode == "-M") {
-    Video3 video;
-    readbin3(input, video);
-
-    for (long f = 0; f < video.noFrames; ++f) {
-      for (size_t i = 0; i < video.width * video.height; ++i) {
-        video.data[f][channel - 1][i] =
-            std::max(min, std::min(max, video.data[f][channel - 1][i]));
-      }
+    ifstream video(input, ios::binary);
+    if (!video.is_open()) {
+      cerr << "Failed to open the input video file." << endl;
     }
-    writebin3(output, video);
+
+    long noFrames;
+    unsigned char channels;
+    unsigned char height;
+    unsigned char width;
+
+    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    ofstream clippedVideo(output, ios::binary);
+
+    clippedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    clippedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    clippedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    clippedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
+
+    size_t frameSize = static_cast<size_t>(channels) *
+                       static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    size_t channelSize =
+        static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    std::vector<unsigned char> frameBuffer(frameSize);
+    size_t pixelOffset = channelSize * (channel - 1);
+    // iterate through every pixel of channel
+    for (long i = 0; i < noFrames; ++i) {
+      video.read(reinterpret_cast<char*>(frameBuffer.data()), frameSize);
+      for (size_t j = pixelOffset; j < pixelOffset + channelSize; ++j) {
+        if (frameBuffer[j] < min) {
+          frameBuffer[j] = min;
+        } else if (frameBuffer[j] > max) {
+          frameBuffer[j] = max;
+        }
+      }
+      // print all the values of frameBuffer
+      // for (size_t k = 0; k < frameSize; ++k) {
+      //   cout << static_cast<int>(frameBuffer[k]) << " ";
+      // }
+
+      clippedVideo.write(reinterpret_cast<char*>(frameBuffer.data()),
+                         frameSize);
+    }
+
+    video.close();
+    clippedVideo.close();
+
   } else if (mode == "-V") {
     Video3 video;
     readbin3(input, video);
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        video.data[f][channel - 1][i] =
-            std::max(min, std::min(max, video.data[f][channel - 1][i]));
+        if (video.data[f][channel - 1][i] < min) {
+          video.data[f][channel - 1][i] = min;
+        } else if (video.data[f][channel - 1][i] > max) {
+          video.data[f][channel - 1][i] = max;
+        }
       }
     }
     writebin3(output, video);
@@ -518,7 +668,14 @@ void scale_channel(const string& input, const string& output,
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        video.data[f][channel - 1][i] = video.data[f][channel - 1][i] * factor;
+        if (video.data[f][channel - 1][i] != 0) {
+          if (factor * video.data[f][channel - 1][i] > 255) {
+            video.data[f][channel - 1][i] = 255;
+          } else {
+            video.data[f][channel - 1][i] =
+                video.data[f][channel - 1][i] * factor;
+          }
+        }
       }
     }
     writebin3(output, video);
