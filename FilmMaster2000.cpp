@@ -1,8 +1,10 @@
 #include "FilmMaster2000.hpp"
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
@@ -246,26 +248,41 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     // 1d solution with pointers
 
+    // Video1 video;
+
+    // readbin1(input, video);
+
+    // const size_t frameSize = static_cast<size_t>(video.channels) *
+    //                          static_cast<size_t>(video.width) *
+    //                          static_cast<size_t>(video.height);
+
+    // for (int i = 0; i < video.noFrames / 2; ++i) {
+    //   const long j = video.noFrames - i - 1;
+
+    //   unsigned char* start = video.data.data() + i * frameSize;
+
+    //   unsigned char* end = video.data.data() + j * frameSize;
+
+    //   for (size_t k = 0; k < frameSize; ++k) {
+    //     std::swap(start[k], end[k]);
+    //   }
+    // }
+
+    // writebin1(output, video);
+
     Video1 video;
-
     readbin1(input, video);
+    size_t frameSize = (size_t)video.channels * video.width * video.height;
+    std::vector<unsigned char> reversedData(video.data.size());
+    for (long i = 0; i < video.noFrames; ++i) {
+      long j = video.noFrames - 1 - i;
+      const unsigned char* src = &video.data[i * frameSize];
+      unsigned char* dst = &reversedData[j * frameSize];
 
-    const size_t frameSize = static_cast<size_t>(video.channels) *
-                             static_cast<size_t>(video.width) *
-                             static_cast<size_t>(video.height);
-
-    for (int i = 0; i < video.noFrames / 2; ++i) {
-      const long j = video.noFrames - i - 1;
-
-      unsigned char* start = video.data.data() + i * frameSize;
-
-      unsigned char* end = video.data.data() + j * frameSize;
-
-      for (size_t k = 0; k < frameSize; ++k) {
-        std::swap(start[k], end[k]);
-      }
+      std::memcpy(dst, src, frameSize);
     }
 
+    video.data = reversedData;
     writebin1(output, video);
 
   } else if (mode == "-M") {

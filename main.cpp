@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -45,8 +46,9 @@ int main(int argc, char *argv[]) {
     reverse(input, output, mode);
     // auto end = chrono::high_resolution_clock::now();
     // chrono::duration<double> elapsed = end - start;
-    // cout << "Time taken for reverse function: " << elapsed.count() << "
-    // seconds" << endl;
+    // cout << "Time taken for reverse function: " << elapsed.count() <<
+    // "seconds "
+    //      << endl;
   } else if (function == "swap_channel") {
     unsigned char channel1, channel2;
 
