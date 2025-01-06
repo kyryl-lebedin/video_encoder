@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     // chrono::duration<double> elapsed = end - start;
     // cout << "Time taken for reverse function: " << elapsed.count() <<
     // "seconds "
-    //      << endl;
+    //  << endl;
   } else if (function == "swap_channel") {
     unsigned char channel1, channel2;
 

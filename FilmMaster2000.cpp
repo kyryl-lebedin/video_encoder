@@ -270,23 +270,68 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     // writebin1(output, video);
 
-    Video1 video;
-    readbin1(input, video);
-    size_t frameSize = (size_t)video.channels * video.width * video.height;
-    std::vector<unsigned char> reversedData(video.data.size());
-    for (long i = 0; i < video.noFrames; ++i) {
-      long j = video.noFrames - 1 - i;
-      const unsigned char* src = &video.data[i * frameSize];
-      unsigned char* dst = &reversedData[j * frameSize];
+    // Video1 video;
+    // readbin1(input, video);
+    // size_t frameSize = (size_t)video.channels * video.width * video.height;
+    // std::vector<unsigned char> reversedData(video.data.size());
+    // for (long i = 0; i < video.noFrames; ++i) {
+    //   long j = video.noFrames - 1 - i;
+    //   const unsigned char* src = &video.data[i * frameSize];
+    //   unsigned char* dst = &reversedData[j * frameSize];
 
-      std::memcpy(dst, src, frameSize);
+    //   std::memcpy(dst, src, frameSize);
+    // }
+
+    // video.data = reversedData;
+    // writebin1(output, video);
+
+    ifstream video(input, ios::binary);
+    if (!video.is_open()) {
+      cerr << "Failed to open the input video file." << endl;
+      return false;
     }
 
-    video.data = reversedData;
-    writebin1(output, video);
+    long noFrames;
+    unsigned char channels;
+    unsigned char height;
+    unsigned char width;
+
+    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    ofstream reversedVideo(output, ios::binary);
+    if (!reversedVideo.is_open()) {
+      cerr << "Failed to open the output video file." << endl;
+      return false;
+    }
+
+    reversedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    reversedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    reversedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    reversedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
+
+    size_t frameSize = static_cast<size_t>(channels) *
+                       static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    // maybe just unisgned char
+    vector<char> frameBuffer(frameSize);
+
+    streamoff headerSize = sizeof(noFrames) + 3 * sizeof(unsigned char);
+
+    for (long i = noFrames - 1; i >= 0; --i) {
+      streamoff offset =
+          headerSize + static_cast<std::streamoff>(i) * frameSize;
+      video.seekg(offset, ios::beg);
+      video.read(frameBuffer.data(), frameSize);
+      reversedVideo.write(frameBuffer.data(), frameSize);
+    }
+    video.close();
+    reversedVideo.close();
 
   } else if (mode == "-M") {
-    // // swap inner and outer frames in 1d array
+    // swap inner and outer frames in 1d array
     // Video1 video;
     // if (!readbin1(input, video)) {
     //   cerr << "Failed to read the input video file." << endl;
@@ -313,20 +358,53 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     // writebin1(output, video);
 
-    Video1 video;
-    readbin1(input, video);
-    size_t frameSize = (size_t)video.channels * video.width * video.height;
-    std::vector<unsigned char> reversedData(video.data.size());
-    for (long i = 0; i < video.noFrames; ++i) {
-      long j = video.noFrames - 1 - i;
-      const unsigned char* src = &video.data[i * frameSize];
-      unsigned char* dst = &reversedData[j * frameSize];
+    // one chunk per time solution
 
-      std::memcpy(dst, src, frameSize);
+    ifstream video(input, ios::binary);
+    if (!video.is_open()) {
+      cerr << "Failed to open the input video file." << endl;
+      return false;
     }
 
-    video.data = reversedData;
-    writebin1(output, video);
+    long noFrames;
+    unsigned char channels;
+    unsigned char height;
+    unsigned char width;
+
+    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    ofstream reversedVideo(output, ios::binary);
+    if (!reversedVideo.is_open()) {
+      cerr << "Failed to open the output video file." << endl;
+      return false;
+    }
+
+    reversedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    reversedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    reversedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    reversedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
+
+    size_t frameSize = static_cast<size_t>(channels) *
+                       static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    // maybe just unisgned char
+    vector<char> frameBuffer(frameSize);
+
+    streamoff headerSize = sizeof(noFrames) + 3 * sizeof(unsigned char);
+
+    for (long i = noFrames - 1; i >= 0; --i) {
+      streamoff offset =
+          headerSize + static_cast<std::streamoff>(i) * frameSize;
+      video.seekg(offset, ios::beg);
+      video.read(frameBuffer.data(), frameSize);
+      reversedVideo.write(frameBuffer.data(), frameSize);
+    }
+    video.close();
+    reversedVideo.close();
+
   } else if (mode == "-V") {
     // // do path from top to bottom and copy to new vector
     // Video1 video;
@@ -359,20 +437,60 @@ bool reverse(const string& input, const string& output, const string& mode) {
     //   // now write the reversed video to the output file
     // }
 
-    Video1 video;
-    readbin1(input, video);
-    size_t frameSize = (size_t)video.channels * video.width * video.height;
-    std::vector<unsigned char> reversedData(video.data.size());
-    for (long i = 0; i < video.noFrames; ++i) {
-      long j = video.noFrames - 1 - i;
-      const unsigned char* src = &video.data[i * frameSize];
-      unsigned char* dst = &reversedData[j * frameSize];
+    // // use cpp reverse on 2d
+    // Video2 video;
+    // if (!readbin2(input, video)) {
+    //   cerr << "Failed to read the input video file." << endl;
+    //   return false;
+    // }
 
-      std::memcpy(dst, src, frameSize);
+    // std::reverse(video.data.begin(), video.data.end());
+    // writebin2(output, video);
+
+    ifstream video(input, ios::binary);
+    if (!video.is_open()) {
+      cerr << "Failed to open the input video file." << endl;
+      return false;
     }
 
-    video.data = reversedData;
-    writebin1(output, video);
+    long noFrames;
+    unsigned char channels;
+    unsigned char height;
+    unsigned char width;
+
+    video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+    video.read(reinterpret_cast<char*>(&height), sizeof(height));
+    video.read(reinterpret_cast<char*>(&width), sizeof(width));
+
+    ofstream reversedVideo(output, ios::binary);
+    if (!reversedVideo.is_open()) {
+      cerr << "Failed to open the output video file." << endl;
+      return false;
+    }
+
+    reversedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
+    reversedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    reversedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
+    reversedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
+
+    size_t frameSize = static_cast<size_t>(channels) *
+                       static_cast<size_t>(width) * static_cast<size_t>(height);
+
+    // maybe just unisgned char
+    vector<char> frameBuffer(frameSize);
+
+    streamoff headerSize = sizeof(noFrames) + 3 * sizeof(unsigned char);
+
+    for (long i = noFrames - 1; i >= 0; --i) {
+      streamoff offset =
+          headerSize + static_cast<std::streamoff>(i) * frameSize;
+      video.seekg(offset, ios::beg);
+      video.read(frameBuffer.data(), frameSize);
+      reversedVideo.write(frameBuffer.data(), frameSize);
+    }
+    video.close();
+    reversedVideo.close();
   }
   return true;
 }
