@@ -481,7 +481,7 @@ void clip_channel(const string& input, const string& output, const string& mode,
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
         video.data[f][channel - 1][i] =
-            std::max(min, std::min(max, video.data[f][channel][i]));
+            std::max(min, std::min(max, video.data[f][channel - 1][i]));
       }
     }
     writebin3(output, video);
@@ -492,7 +492,7 @@ void clip_channel(const string& input, const string& output, const string& mode,
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
         video.data[f][channel - 1][i] =
-            std::max(min, std::min(max, video.data[f][channel][i]));
+            std::max(min, std::min(max, video.data[f][channel - 1][i]));
       }
     }
     writebin3(output, video);
@@ -503,7 +503,7 @@ void clip_channel(const string& input, const string& output, const string& mode,
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
         video.data[f][channel - 1][i] =
-            std::max(min, std::min(max, video.data[f][channel][i]));
+            std::max(min, std::min(max, video.data[f][channel - 1][i]));
       }
     }
     writebin3(output, video);
