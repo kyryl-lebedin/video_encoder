@@ -671,23 +671,50 @@ void scale_channel(const string& input, const string& output,
         if (video.data[f][channel - 1][i] != 0) {
           if (factor * video.data[f][channel - 1][i] > 255) {
             video.data[f][channel - 1][i] = 255;
-          } else {
+          } else if (factor <= 0) {
+            video.data[f][channel - 1][i] = 0;
+          }
+
+          else {
             video.data[f][channel - 1][i] =
                 video.data[f][channel - 1][i] * factor;
           }
         }
       }
     }
+
     writebin3(output, video);
   } else if (mode == "-M") {
+    // Video3 video;
+    // readbin3(input, video);
+
+    // for (long f = 0; f < video.noFrames; ++f) {
+    //   for (size_t i = 0; i < video.width * video.height; ++i) {
+    //     video.data[f][channel - 1][i] = video.data[f][channel - 1][i] *
+    //     factor;
+    //   }
+    // }
+    // writebin3(output, video);
     Video3 video;
     readbin3(input, video);
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        video.data[f][channel - 1][i] = video.data[f][channel - 1][i] * factor;
+        if (video.data[f][channel - 1][i] != 0) {
+          if (factor * video.data[f][channel - 1][i] > 255) {
+            video.data[f][channel - 1][i] = 255;
+          } else if (factor <= 0) {
+            video.data[f][channel - 1][i] = 0;
+          }
+
+          else {
+            video.data[f][channel - 1][i] =
+                video.data[f][channel - 1][i] * factor;
+          }
+        }
       }
     }
+
     writebin3(output, video);
   } else if (mode == "-V") {
     Video3 video;
@@ -695,9 +722,21 @@ void scale_channel(const string& input, const string& output,
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        video.data[f][channel - 1][i] = video.data[f][channel - 1][i] * factor;
+        if (video.data[f][channel - 1][i] != 0) {
+          if (factor * video.data[f][channel - 1][i] > 255) {
+            video.data[f][channel - 1][i] = 255;
+          } else if (factor <= 0) {
+            video.data[f][channel - 1][i] = 0;
+          }
+
+          else {
+            video.data[f][channel - 1][i] =
+                video.data[f][channel - 1][i] * factor;
+          }
+        }
       }
     }
+
     writebin3(output, video);
   }
 }
