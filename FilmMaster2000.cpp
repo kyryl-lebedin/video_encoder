@@ -271,7 +271,10 @@ bool reverse(const string& input, const string& output, const string& mode) {
     // writebin1(output, video);
 
     Video1 video;
-    readbin1(input, video);
+    if (!readbin1(input, video)) {
+      return false;
+    }
+
     size_t frameSize = (size_t)video.channels * video.width * video.height;
     std::vector<unsigned char> reversedData(video.data.size());
     for (long i = 0; i < video.noFrames; ++i) {
@@ -283,7 +286,10 @@ bool reverse(const string& input, const string& output, const string& mode) {
     }
 
     video.data = reversedData;
-    writebin1(output, video);
+
+    if (!writebin1(output, video)) {
+      return false;
+    }
 
   } else if (mode == "-M") {
     // swap inner and outer frames in 1d array
@@ -317,7 +323,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
-      cerr << "Failed to open the input video file." << endl;
+      cerr << "Error: Failed to open file " << input << endl;
       return false;
     }
 
@@ -333,7 +339,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     ofstream reversedVideo(output, ios::binary);
     if (!reversedVideo.is_open()) {
-      cerr << "Failed to open the output video file." << endl;
+      cerr << "Error: Failed to open file " << output << endl;
       return false;
     }
 
@@ -395,26 +401,36 @@ bool reverse(const string& input, const string& output, const string& mode) {
     // use cpp reverse on 2d
     Video2 video;
     if (!readbin2(input, video)) {
-      cerr << "Failed to read the input video file." << endl;
       return false;
     }
-
     std::reverse(video.data.begin(), video.data.end());
-    writebin2(output, video);
+    if (!writebin2(output, video)) {
+      return false;
+    }
   }
   return true;
 }
 
-void swap_channel(const string& input, const string& output, const string& mode,
+bool swap_channel(const string& input, const string& output, const string& mode,
                   unsigned char channel1, unsigned char channel2) {
   if (mode == "-S") {
     Video3 video;
-    readbin3(input, video);
+    if (!readbin3(input, video)) {
+      return false;
+    }
+
+    if (channel1 > video.channels || channel2 > video.channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      return false;
+    }
 
     for (long f = 0; f < video.noFrames; ++f) {
       std::swap(video.data[f][channel1 - 1], video.data[f][channel2 - 1]);
     }
-    writebin3(output, video);
+
+    if (!writebin3(output, video)) {
+      return false;
+    }
   }
 
   else if (mode == "-M") {
@@ -465,7 +481,8 @@ void swap_channel(const string& input, const string& output, const string& mode,
 
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
-      cerr << "Failed to open the input video file." << endl;
+      cerr << "Error: Failed to open file " << input << endl;
+      return false;
     }
 
     long noFrames;
@@ -478,7 +495,17 @@ void swap_channel(const string& input, const string& output, const string& mode,
     video.read(reinterpret_cast<char*>(&height), sizeof(height));
     video.read(reinterpret_cast<char*>(&width), sizeof(width));
 
+    if (channel1 > channels || channel2 > channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      video.close();
+      return false;
+    }
+
     ofstream swappedVideo(output, ios::binary);
+    if (!swappedVideo.is_open()) {
+      cerr << "Error: Failed to open file " << output << endl;
+      return false;
+    }
 
     swappedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
     swappedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
@@ -522,7 +549,8 @@ void swap_channel(const string& input, const string& output, const string& mode,
   else if (mode == "-V") {
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
-      cerr << "Failed to open the input video file." << endl;
+      cerr << "Error: Failed to open file " << input << endl;
+      return false;
     }
 
     long noFrames;
@@ -535,7 +563,17 @@ void swap_channel(const string& input, const string& output, const string& mode,
     video.read(reinterpret_cast<char*>(&height), sizeof(height));
     video.read(reinterpret_cast<char*>(&width), sizeof(width));
 
+    if (channel1 > channels || channel2 > channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      video.close();
+      return false;
+    }
+
     ofstream swappedVideo(output, ios::binary);
+    if (!swappedVideo.is_open()) {
+      cerr << "Error: Failed to open file " << output << endl;
+      return false;
+    }
 
     swappedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
     swappedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
@@ -574,13 +612,21 @@ void swap_channel(const string& input, const string& output, const string& mode,
     //   swappedVideo.write(frameBuffer.data(), frameSize);
     // }
   }
+  return true;
 }
 
-void clip_channel(const string& input, const string& output, const string& mode,
+bool clip_channel(const string& input, const string& output, const string& mode,
                   unsigned char channel, unsigned char min, unsigned char max) {
   if (mode == "-S") {
     Video3 video;
-    readbin3(input, video);
+    if (!readbin3(input, video)) {
+      return false;
+    }
+
+    if (channel > video.channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      return false;
+    }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
@@ -589,11 +635,15 @@ void clip_channel(const string& input, const string& output, const string& mode,
         // cout << static_cast<int>(video.data[f][channel - 1][i]) << " ";
       }
     }
-    writebin3(output, video);
+    if (!writebin3(output, video)) {
+      return false;
+    }
+
   } else if (mode == "-M") {
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
-      cerr << "Failed to open the input video file." << endl;
+      cerr << "Error: Failed to open file " << input << endl;
+      return false;
     }
 
     long noFrames;
@@ -603,10 +653,21 @@ void clip_channel(const string& input, const string& output, const string& mode,
 
     video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
     video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
+
+    if (channel > channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      video.close();
+      return false;
+    }
+
     video.read(reinterpret_cast<char*>(&height), sizeof(height));
     video.read(reinterpret_cast<char*>(&width), sizeof(width));
 
     ofstream clippedVideo(output, ios::binary);
+    if (!clippedVideo.is_open()) {
+      cerr << "Error: Failed to open file " << output << endl;
+      return false;
+    }
 
     clippedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
     clippedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
@@ -645,7 +706,14 @@ void clip_channel(const string& input, const string& output, const string& mode,
 
   } else if (mode == "-V") {
     Video3 video;
-    readbin3(input, video);
+    if (!readbin3(input, video)) {
+      return false;
+    }
+
+    if (channel > video.channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      return false;
+    }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
@@ -656,15 +724,25 @@ void clip_channel(const string& input, const string& output, const string& mode,
         }
       }
     }
-    writebin3(output, video);
+    if (!writebin3(output, video)) {
+      return false;
+    }
   }
+  return true;
 }
 
-void scale_channel(const string& input, const string& output,
+bool scale_channel(const string& input, const string& output,
                    const string& mode, unsigned char channel, float factor) {
   if (mode == "-S") {
     Video3 video;
-    readbin3(input, video);
+    if (!readbin3(input, video)) {
+      return false;
+    }
+
+    if (channel > video.channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      return false;
+    }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
@@ -683,7 +761,9 @@ void scale_channel(const string& input, const string& output,
       }
     }
 
-    writebin3(output, video);
+    if (!writebin3(output, video)) {
+      return false;
+    }
   } else if (mode == "-M") {
     // Video3 video;
     // readbin3(input, video);
@@ -696,7 +776,14 @@ void scale_channel(const string& input, const string& output,
     // }
     // writebin3(output, video);
     Video3 video;
-    readbin3(input, video);
+    if (!readbin3(input, video)) {
+      return false;
+    }
+
+    if (channel > video.channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      return false;
+    }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
@@ -715,10 +802,19 @@ void scale_channel(const string& input, const string& output,
       }
     }
 
-    writebin3(output, video);
+    if (!writebin3(output, video)) {
+      return false;
+    }
   } else if (mode == "-V") {
     Video3 video;
-    readbin3(input, video);
+    if (!readbin3(input, video)) {
+      return false;
+    }
+
+    if (channel > video.channels) {
+      cerr << "Error: Invalid channel number." << endl;
+      return false;
+    }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
@@ -737,6 +833,9 @@ void scale_channel(const string& input, const string& output,
       }
     }
 
-    writebin3(output, video);
+    if (!writebin3(output, video)) {
+      return false;
+    }
   }
+  return true;
 }
