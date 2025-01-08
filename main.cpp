@@ -93,8 +93,8 @@ int main(int argc, char *argv[]) {
 
     ss >> tempChannel1 >> delimiter >> tempChannel2;
 
-    channel1 = static_cast<unsigned char>(tempChannel1);
-    channel2 = static_cast<unsigned char>(tempChannel2);
+    channel1 = static_cast<unsigned char>(tempChannel1) + 1;
+    channel2 = static_cast<unsigned char>(tempChannel2) + 1;
 
     auto start = chrono::high_resolution_clock::now();
 
@@ -140,7 +140,8 @@ int main(int argc, char *argv[]) {
 
     // channel validity is checked in the clip_channel function
     if (!clip_channel(input, output, mode,
-                      static_cast<unsigned char>(stoi(options[0])), min, max)) {
+                      (static_cast<unsigned char>(stoi(options[0])) + 1), min,
+                      max)) {
       return 1;
     }
 
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    unsigned char channel = static_cast<unsigned char>(stoi(options[0]));
+    unsigned char channel = static_cast<unsigned char>(stoi(options[0])) + 1;
     float scale_factor = stof(options[1]);
 
     auto start = chrono::high_resolution_clock::now();
