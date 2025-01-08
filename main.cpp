@@ -12,6 +12,13 @@ using namespace std;
 int main(int argc, char *argv[]) {
   // add check for argv[0]?
 
+  if (argc < 4) {
+    std::cerr << "Error: Invalid number of arguments. Expected at least 4 "
+                 "arguments."
+              << std::endl;
+    return 1;
+  }
+
   string input = argv[1];
   string output = argv[2];
 
