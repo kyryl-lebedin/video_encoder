@@ -1,5 +1,7 @@
 #include "FilmMaster2000.hpp"
 
+#include <immintrin.h>
+
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -123,6 +125,37 @@ bool readbin2(const string& filename, Video2& video) {
   return true;
 }
 
+bool readbin2S(const string& filename, Video2& video) {
+  ifstream binVideo(filename, ios::binary);
+  if (!binVideo.is_open()) {
+    cerr << "Error: Failed to open file " << filename << endl;
+    return false;
+  }
+
+  binVideo.read(reinterpret_cast<char*>(&video.noFrames),
+                sizeof(video.noFrames));
+  binVideo.read(reinterpret_cast<char*>(&video.channels),
+                sizeof(video.channels));
+  binVideo.read(reinterpret_cast<char*>(&video.width), sizeof(video.width));
+  binVideo.read(reinterpret_cast<char*>(&video.height), sizeof(video.height));
+
+  size_t frameSize = static_cast<size_t>(video.channels) *
+                     static_cast<size_t>(video.width) *
+                     static_cast<size_t>(video.height);
+  size_t totalSize = static_cast<size_t>(video.noFrames) * frameSize;
+
+  vector<unsigned char> Alldata(totalSize);
+  binVideo.read(reinterpret_cast<char*>(Alldata.data()), totalSize);
+  binVideo.close();
+
+  video.data.resize(video.noFrames);
+  for (long f = 0; f < video.noFrames; ++f) {
+    video.data[f] = vector<unsigned char>(
+        Alldata.begin() + f * frameSize, Alldata.begin() + (f + 1) * frameSize);
+  }
+
+  return true;
+}
 bool readbin3(const string& filename, Video3& video) {
   ifstream binVideo(filename, ios::binary);
   if (!binVideo.is_open()) {
@@ -205,6 +238,38 @@ bool writebin2(const string& filename, const Video2& video) {
   return true;
 }
 
+bool writebin2S(const string& filename, const Video2& video) {
+  ofstream binVideo(filename, ios::binary);
+  if (!binVideo.is_open()) {
+    cerr << "Error: Failed to create or open file " << filename << endl;
+    return false;
+  }
+
+  binVideo.write(reinterpret_cast<const char*>(&video.noFrames),
+                 sizeof(video.noFrames));
+  binVideo.write(reinterpret_cast<const char*>(&video.channels),
+                 sizeof(video.channels));
+  binVideo.write(reinterpret_cast<const char*>(&video.width),
+                 sizeof(video.width));
+  binVideo.write(reinterpret_cast<const char*>(&video.height),
+                 sizeof(video.height));
+
+  size_t frameSize = static_cast<size_t>(video.channels) *
+                     static_cast<size_t>(video.width) *
+                     static_cast<size_t>(video.height);
+
+  size_t totalSize = static_cast<size_t>(video.noFrames) * frameSize;
+  vector<unsigned char> alldata(totalSize);
+  for (long f = 0; f < video.noFrames; ++f) {
+    memcpy(&alldata[f * frameSize], video.data[f].data(), frameSize);
+  }
+
+  binVideo.write(reinterpret_cast<const char*>(alldata.data()), totalSize);
+
+  binVideo.close();
+  return true;
+}
+
 bool writebin3(const string& filename, const Video3& video) {
   ofstream binVideo(filename, ios::binary);
   if (!binVideo.is_open()) {
@@ -269,7 +334,9 @@ bool reverse(const string& input, const string& output, const string& mode) {
     // }
 
     // writebin1(output, video);
-
+    //
+    //
+    // 1d sol copy from back of source into new one
     Video1 video;
     if (!readbin1(input, video)) {
       return false;
@@ -277,6 +344,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     size_t frameSize = (size_t)video.channels * video.width * video.height;
     std::vector<unsigned char> reversedData(video.data.size());
+
     for (long i = 0; i < video.noFrames; ++i) {
       long j = video.noFrames - 1 - i;
       const unsigned char* src = &video.data[i * frameSize];
@@ -380,8 +448,8 @@ bool reverse(const string& input, const string& output, const string& mode) {
     //                    static_cast<size_t>(video.height);
 
     // if (video.data.size() % frameSize != 0) {
-    //   std::cerr << "Error: Invalid frame size. Not divisible" << std::endl;
-    //   return false;
+    //   std::cerr << "Error: Invalid frame size. Not divisible" <<
+    //   std::endl; return false;
     // }
 
     // int numFrames = video.noFrames;
@@ -404,7 +472,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
       return false;
     }
     std::reverse(video.data.begin(), video.data.end());
-    if (!writebin2(output, video)) {
+    if (!writebin2S(output, video)) {
       return false;
     }
   }
@@ -451,8 +519,10 @@ bool swap_channel(const string& input, const string& output, const string& mode,
 
     // ofstream swappedVideo(output, ios::binary);
 
-    // swappedVideo.write(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
-    // swappedVideo.write(reinterpret_cast<char*>(&channels), sizeof(channels));
+    // swappedVideo.write(reinterpret_cast<char*>(&noFrames),
+    // sizeof(noFrames));
+    // swappedVideo.write(reinterpret_cast<char*>(&channels),
+    // sizeof(channels));
     // swappedVideo.write(reinterpret_cast<char*>(&height), sizeof(height));
     // swappedVideo.write(reinterpret_cast<char*>(&width), sizeof(width));
 
