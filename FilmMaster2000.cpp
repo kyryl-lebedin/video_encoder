@@ -303,11 +303,11 @@ bool reverse(const string& input, const string& output, const string& mode) {
   if (mode == "-S") {
     // use cpp reverse on 2d
     Video2 video;
-    if (!readbin2S(input, video)) {
+    if (!readbin2(input, video)) {
       return false;
     }
     std::reverse(video.data.begin(), video.data.end());
-    if (!writebin2S(output, video)) {
+    if (!writebin2(output, video)) {
       return false;
     }
 
@@ -468,11 +468,11 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     // use cpp reverse on 2d
     Video2 video;
-    if (!readbin2S(input, video)) {
+    if (!readbin2(input, video)) {
       return false;
     }
     std::reverse(video.data.begin(), video.data.end());
-    if (!writebin2S(output, video)) {
+    if (!writebin2(output, video)) {
       return false;
     }
   }
