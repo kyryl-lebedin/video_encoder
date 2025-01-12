@@ -301,15 +301,15 @@ bool writebin3(const string& filename, const Video3& video) {
 
 bool reverse(const string& input, const string& output, const string& mode) {
   if (mode == "-S") {
-    // // use cpp reverse on 2d
-    // Video2 video;
-    // if (!readbin2(input, video)) {
-    //   cerr << "Failed to read the input video file." << endl;
-    //   return false;
-    // }
-
-    // std::reverse(video.data.begin(), video.data.end());
-    // writebin2(output, video);
+    // use cpp reverse on 2d
+    Video2 video;
+    if (!readbin2S(input, video)) {
+      return false;
+    }
+    std::reverse(video.data.begin(), video.data.end());
+    if (!writebin2S(output, video)) {
+      return false;
+    }
 
     // 1d solution with pointers
 
@@ -336,30 +336,31 @@ bool reverse(const string& input, const string& output, const string& mode) {
     // writebin1(output, video);
     //
     //
-    // 1d sol copy from back of source into new one
-    Video1 video;
-    if (!readbin1(input, video)) {
-      return false;
-    }
+    //// 1d sol copy from back of source into new one
+    // Video1 video;
+    // if (!readbin1(input, video)) {
+    //   return false;
+    // }
 
-    size_t frameSize = (size_t)video.channels * video.width * video.height;
-    std::vector<unsigned char> reversedData(video.data.size());
+    // size_t frameSize = (size_t)video.channels * video.width * video.height;
+    // std::vector<unsigned char> reversedData(video.data.size());
 
-    for (long i = 0; i < video.noFrames; ++i) {
-      long j = video.noFrames - 1 - i;
-      const unsigned char* src = &video.data[i * frameSize];
-      unsigned char* dst = &reversedData[j * frameSize];
+    // for (long i = 0; i < video.noFrames; ++i) {
+    //   long j = video.noFrames - 1 - i;
+    //   const unsigned char* src = &video.data[i * frameSize];
+    //   unsigned char* dst = &reversedData[j * frameSize];
 
-      std::memcpy(dst, src, frameSize);
-    }
+    //   std::memcpy(dst, src, frameSize);
+    // }
 
-    video.data = reversedData;
+    // video.data = reversedData;
 
-    if (!writebin1(output, video)) {
-      return false;
-    }
+    // if (!writebin1(output, video)) {
+    //   return false;
+    // }
+  }
 
-  } else if (mode == "-M") {
+  else if (mode == "-M") {
     // swap inner and outer frames in 1d array
     // Video1 video;
     // if (!readbin1(input, video)) {
@@ -433,7 +434,6 @@ bool reverse(const string& input, const string& output, const string& mode) {
     }
     video.close();
     reversedVideo.close();
-
   } else if (mode == "-V") {
     // // do path from top to bottom and copy to new vector
     // Video1 video;
@@ -468,7 +468,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
 
     // use cpp reverse on 2d
     Video2 video;
-    if (!readbin2(input, video)) {
+    if (!readbin2S(input, video)) {
       return false;
     }
     std::reverse(video.data.begin(), video.data.end());
