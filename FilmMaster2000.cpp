@@ -3,13 +3,31 @@
 #include <immintrin.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 using namespace std;
+
+class ThrottledStream {
+  std::ifstream& stream;
+  int delayMs;
+
+ public:
+  ThrottledStream(std::ifstream& stream, int delayMs)
+      : stream(stream), delayMs(delayMs) {}
+
+  void read(char* buffer, std::streamsize size) {
+    stream.read(buffer, size);
+    std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
+  }
+
+  bool good() const { return stream.good(); }
+};
 
 void printVideo1(const Video1& video) {
   cout << "Number of frames: " << video.noFrames << endl;
@@ -69,6 +87,101 @@ void printVideo3(const Video3& video) {
 // indeces 1-3 determine the structure of created vector to hold pixels 1d, 2d
 // or 3d
 
+bool readbin(const string& filename, Video& video, Video::StorageMode mode) {
+  video.mode = mode;
+
+  ifstream binVideo(filename, ios::binary);
+  if (!binVideo.is_open()) {
+    cerr << "Error: Failed to open file " << filename << endl;
+    return false;
+  }
+
+  binVideo.read(reinterpret_cast<char*>(&video.noFrames),
+                sizeof(video.noFrames));
+  binVideo.read(reinterpret_cast<char*>(&video.channels),
+                sizeof(video.channels));
+  binVideo.read(reinterpret_cast<char*>(&video.width), sizeof(video.width));
+  binVideo.read(reinterpret_cast<char*>(&video.height), sizeof(video.height));
+
+  if (mode == Video::Mode1D) {
+    size_t totalSize = static_cast<size_t>(video.noFrames) * video.channels *
+                       video.width * video.height;
+    video.data1.resize(totalSize);
+    binVideo.read(reinterpret_cast<char*>(video.data1.data()), totalSize);
+  }
+  if (mode == Video::Mode2D) {
+    size_t frameSize = static_cast<size_t>(video.channels) *
+                       static_cast<size_t>(video.width) *
+                       static_cast<size_t>(video.height);
+    video.data2.resize(video.noFrames);
+    for (long f = 0; f < video.noFrames; ++f) {
+      video.data2[f].resize(frameSize);
+      binVideo.read(reinterpret_cast<char*>(video.data2[f].data()), frameSize);
+    }
+  }
+
+  if (mode == Video::Mode3D) {
+    size_t channelSize =
+        static_cast<size_t>(video.width) * static_cast<size_t>(video.height);
+
+    video.data3.resize(video.noFrames);
+    for (long f = 0; f < video.noFrames; ++f) {
+      video.data3[f].resize(video.channels);
+      for (int c = 0; c < video.channels; ++c) {
+        video.data3[f][c].resize(channelSize);
+        binVideo.read(reinterpret_cast<char*>(video.data3[f][c].data()),
+                      channelSize);
+      }
+    }
+  }
+
+  binVideo.close();
+  return true;
+}
+
+bool readbinS(const string& filename, Video& video, Video::StorageMode mode) {
+  video.mode = mode;
+
+  ifstream binVideo(filename, ios::binary);
+  if (!binVideo.is_open()) {
+    cerr << "Error: Failed to open file " << filename << endl;
+    return false;
+  }
+
+  binVideo.read(reinterpret_cast<char*>(&video.noFrames),
+                sizeof(video.noFrames));
+  binVideo.read(reinterpret_cast<char*>(&video.channels),
+                sizeof(video.channels));
+  binVideo.read(reinterpret_cast<char*>(&video.width), sizeof(video.width));
+  binVideo.read(reinterpret_cast<char*>(&video.height), sizeof(video.height));
+
+  size_t frameSize = static_cast<size_t>(video.channels) *
+                     static_cast<size_t>(video.width) *
+                     static_cast<size_t>(video.height);
+  size_t totalSize = static_cast<size_t>(video.noFrames) * frameSize;
+
+  vector<unsigned char> alldata(totalSize);
+  binVideo.read(reinterpret_cast<char*>(alldata.data()), totalSize);
+  binVideo.close();
+
+  if (mode == Video::Mode1D) {
+  }
+
+  if (mode == Video::Mode2D) {
+    video.data2.resize(video.noFrames);
+    for (long f = 0; f < video.noFrames; ++f) {
+      video.data2[f] =
+          vector<unsigned char>(alldata.begin() + f * frameSize,
+                                alldata.begin() + (f + 1) * frameSize);
+    }
+  }
+
+  if (mode == Video::Mode3D) {
+  }
+
+  return true;
+}
+
 bool readbin1(const string& filename, Video1& video) {
   ifstream binVideo(filename, ios::binary);
   if (!binVideo.is_open()) {
@@ -101,6 +214,8 @@ bool readbin2(const string& filename, Video2& video) {
     cerr << "Error: Failed to open file " << filename << endl;
     return false;
   }
+
+  ThrottledStream binVideot(binVideo, 10);
 
   binVideo.read(reinterpret_cast<char*>(&video.noFrames),
                 sizeof(video.noFrames));
@@ -156,6 +271,7 @@ bool readbin2S(const string& filename, Video2& video) {
 
   return true;
 }
+
 bool readbin3(const string& filename, Video3& video) {
   ifstream binVideo(filename, ios::binary);
   if (!binVideo.is_open()) {
@@ -184,6 +300,88 @@ bool readbin3(const string& filename, Video3& video) {
   }
 
   // printVideo3(video);
+  binVideo.close();
+  return true;
+}
+
+bool writebin(const string& filename, Video& video, Video::StorageMode mode) {
+  video.mode = mode;
+
+  ofstream binVideo(filename, ios::binary);
+  if (!binVideo.is_open()) {
+    cerr << "Error: Failed to create or open file " << filename << endl;
+    return false;
+  }
+
+  binVideo.write(reinterpret_cast<const char*>(&video.noFrames),
+                 sizeof(video.noFrames));
+  binVideo.write(reinterpret_cast<const char*>(&video.channels),
+                 sizeof(video.channels));
+  binVideo.write(reinterpret_cast<const char*>(&video.width),
+                 sizeof(video.width));
+  binVideo.write(reinterpret_cast<const char*>(&video.height),
+                 sizeof(video.height));
+
+  if (mode == Video::Mode1D) {
+    binVideo.write(reinterpret_cast<const char*>(video.data1.data()),
+                   video.data1.size());
+  }
+  if (mode == Video::Mode2D) {
+    for (long f = 0; f < video.noFrames; ++f) {
+      binVideo.write(reinterpret_cast<const char*>(video.data2[f].data()),
+                     video.data2[f].size());
+    }
+  }
+  if (mode == Video::Mode3D) {
+    for (long f = 0; f < video.noFrames; ++f) {
+      for (int c = 0; c < video.channels; ++c) {
+        binVideo.write(reinterpret_cast<const char*>(video.data3[f][c].data()),
+                       video.data3[f][c].size());
+      }
+    }
+  }
+
+  binVideo.close();
+  return true;
+}
+
+bool writebinS(const string& filename, Video& video, Video::StorageMode mode) {
+  video.mode = mode;
+
+  ofstream binVideo(filename, ios::binary);
+  if (!binVideo.is_open()) {
+    cerr << "Error: Failed to create or open file " << filename << endl;
+    return false;
+  }
+
+  binVideo.write(reinterpret_cast<const char*>(&video.noFrames),
+                 sizeof(video.noFrames));
+  binVideo.write(reinterpret_cast<const char*>(&video.channels),
+                 sizeof(video.channels));
+  binVideo.write(reinterpret_cast<const char*>(&video.width),
+                 sizeof(video.width));
+  binVideo.write(reinterpret_cast<const char*>(&video.height),
+                 sizeof(video.height));
+
+  if (mode == Video::Mode1D) {
+  }
+  if (mode == Video::Mode2D) {
+    size_t frameSize = static_cast<size_t>(video.channels) *
+                       static_cast<size_t>(video.width) *
+                       static_cast<size_t>(video.height);
+
+    size_t totalSize = static_cast<size_t>(video.noFrames) * frameSize;
+    vector<unsigned char> alldata(totalSize);
+    for (long f = 0; f < video.noFrames; ++f) {
+      memcpy(&alldata[f * frameSize], video.data2[f].data(), frameSize);
+    }
+
+    binVideo.write(reinterpret_cast<const char*>(alldata.data()), totalSize);
+  }
+
+  if (mode == Video::Mode3D) {
+  }
+
   binVideo.close();
   return true;
 }
@@ -302,14 +500,24 @@ bool writebin3(const string& filename, const Video3& video) {
 bool reverse(const string& input, const string& output, const string& mode) {
   if (mode == "-S") {
     // use cpp reverse on 2d
-    Video2 video;
-    if (!readbin2(input, video)) {
+    Video video;
+    if (!readbinS(input, video, Video::Mode2D)) {
       return false;
     }
-    std::reverse(video.data.begin(), video.data.end());
-    if (!writebin2(output, video)) {
+    std::reverse(video.data2.begin(), video.data2.end());
+    if (!writebinS(output, video, Video::Mode2D)) {
       return false;
     }
+
+    // // use cpp reverse on 2d
+    // Video2 video;
+    // if (!readbin2S(input, video)) {
+    //   return false;
+    // }
+    // std::reverse(video.data.begin(), video.data.end());
+    // if (!writebin2S(output, video)) {
+    //   return false;
+    // }
 
     // 1d solution with pointers
 
@@ -358,9 +566,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
     // if (!writebin1(output, video)) {
     //   return false;
     // }
-  }
-
-  else if (mode == "-M") {
+  } else if (mode == "-M") {
     // swap inner and outer frames in 1d array
     // Video1 video;
     // if (!readbin1(input, video)) {
@@ -467,12 +673,12 @@ bool reverse(const string& input, const string& output, const string& mode) {
     // }
 
     // use cpp reverse on 2d
-    Video2 video;
-    if (!readbin2(input, video)) {
+    Video video;
+    if (!readbin(input, video, Video::Mode2D)) {
       return false;
     }
-    std::reverse(video.data.begin(), video.data.end());
-    if (!writebin2(output, video)) {
+    std::reverse(video.data2.begin(), video.data2.end());
+    if (!writebin(output, video, Video::Mode2D)) {
       return false;
     }
   }
@@ -499,9 +705,7 @@ bool swap_channel(const string& input, const string& output, const string& mode,
     if (!writebin3(output, video)) {
       return false;
     }
-  }
-
-  else if (mode == "-M") {
+  } else if (mode == "-M") {
     // ifstream video(input, ios::binary);
     // if (!video.is_open()) {
     //   cerr << "Failed to open the input video file." << endl;
@@ -614,9 +818,7 @@ bool swap_channel(const string& input, const string& output, const string& mode,
     //   swappedVideo.write(frameBuffer.data(), frameSize);
     // }
 
-  }
-
-  else if (mode == "-V") {
+  } else if (mode == "-V") {
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Error: Failed to open file " << input << endl;
