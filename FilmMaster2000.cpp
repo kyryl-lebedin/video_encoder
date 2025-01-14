@@ -419,32 +419,7 @@ bool swap_channel(const string& input, const string& output, const string& mode,
 
 bool clip_channel(const string& input, const string& output, const string& mode,
                   unsigned char channel, unsigned char min, unsigned char max) {
-  if (mode == "-S") {
-    Video video;
-    if (!readbinS(input, video, Video::Mode3D)) {
-      return false;
-    }
-
-    if (channel > video.channels - 1) {
-      cerr << "Error: Invalid channel number." << endl;
-      return false;
-    }
-
-    for (long f = 0; f < video.noFrames; ++f) {
-      for (size_t i = 0; i < video.width * video.height; ++i) {
-        if (video.data3[f][channel][i] < min) {
-          video.data3[f][channel][i] = min;
-        } else if (video.data3[f][channel][i] > max) {
-          video.data3[f][channel][i] = max;
-        }
-      }
-    }
-
-    if (!writebinS(output, video, Video::Mode3D)) {
-      return false;
-    }
-
-  } else if (mode == "-M") {
+  if (mode == "-M") {
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Error: Failed to open file " << input << endl;
@@ -505,10 +480,17 @@ bool clip_channel(const string& input, const string& output, const string& mode,
     video.close();
     clippedVideo.close();
 
-  } else if (mode == "-V") {
+  } else {
     Video video;
-    if (!readbin(input, video, Video::Mode3D)) {
-      return false;
+
+    if (mode == "-S") {
+      if (!readbinS(input, video, Video::Mode3D)) {
+        return false;
+      }
+    } else {
+      if (!readbin(input, video, Video::Mode3D)) {
+        return false;
+      }
     }
 
     if (channel > video.channels - 1) {
@@ -525,9 +507,19 @@ bool clip_channel(const string& input, const string& output, const string& mode,
         }
       }
     }
-    if (!writebin(output, video, Video::Mode3D)) {
-      return false;
+    
+    if (mode == "-S") {
+      if (!writebinS(output, video, Video::Mode3D)) {
+        return false;
+      }
+    } else {
+      if (!writebin(output, video, Video::Mode3D)) {
+        return false;
+      }
     }
+    
+
+
   }
   return true;
 }
