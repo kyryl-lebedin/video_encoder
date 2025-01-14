@@ -10,8 +10,6 @@
 using namespace std;
 
 int main(int argc, char *argv[]) {
-  // add check for argv[0]?
-
   if (argc < 4) {
     std::cerr << "Error: Invalid number of arguments. Expected at least 4 "
                  "arguments."
@@ -59,7 +57,7 @@ int main(int argc, char *argv[]) {
   // cout << options[0] << endl;
 
   if (function == "reverse") {
-    // auto start = chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
     if (options.size() != 0) {
       cerr << "Invalid number of arguments for reverse function. Expected 0 "
               "arguments."
@@ -70,11 +68,10 @@ int main(int argc, char *argv[]) {
     if (!reverse(input, output, mode)) {
       return 1;
     }
-    // auto end = chrono::high_resolution_clock::now();
-    // chrono::duration<double> elapsed = end - start;
-    // cout << "Time taken for reverse function: " << elapsed.count() <<
-    // "seconds "
-    //  << endl;
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed = end - start;
+    cout << "Time taken for reverse function: " << elapsed.count() << "seconds "
+         << endl;
   } else if (function == "swap_channel") {
     if (options.size() != 1 ||
         !std::regex_match(options[0], std::regex(R"(\d+,\d+)"))) {
