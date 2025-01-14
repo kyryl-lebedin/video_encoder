@@ -343,7 +343,7 @@ bool swap_channel(const string& input, const string& output, const string& mode,
     video.read(reinterpret_cast<char*>(&height), sizeof(height));
     video.read(reinterpret_cast<char*>(&width), sizeof(width));
 
-    if (channel1 > channels || channel2 > channels) {
+    if (channel1 > channels - 1 || channel2 > channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       video.close();
       return false;
@@ -371,7 +371,7 @@ bool swap_channel(const string& input, const string& output, const string& mode,
         video.read(frameBuffer[j].data(), channelSize);
       }
 
-      swap(frameBuffer[channel1 - 1], frameBuffer[channel2 - 1]);
+      swap(frameBuffer[channel1], frameBuffer[channel2]);
 
       for (int j = 0; j < channels; ++j) {
         swappedVideo.write(frameBuffer[j].data(), channelSize);
@@ -394,13 +394,13 @@ bool swap_channel(const string& input, const string& output, const string& mode,
       }
     }
 
-    if (channel1 > video.channels || channel2 > video.channels) {
+    if (channel1 > video.channels - 1 || channel2 > video.channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       return false;
     }
 
     for (long f = 0; f < video.noFrames; ++f) {
-      std::swap(video.data3[f][channel1 - 1], video.data3[f][channel2 - 1]);
+      std::swap(video.data3[f][channel1], video.data3[f][channel2]);
     }
 
     if (mode == "-S") {
@@ -425,17 +425,17 @@ bool clip_channel(const string& input, const string& output, const string& mode,
       return false;
     }
 
-    if (channel > video.channels) {
+    if (channel > video.channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       return false;
     }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        if (video.data3[f][channel - 1][i] < min) {
-          video.data3[f][channel - 1][i] = min;
-        } else if (video.data3[f][channel - 1][i] > max) {
-          video.data3[f][channel - 1][i] = max;
+        if (video.data3[f][channel][i] < min) {
+          video.data3[f][channel][i] = min;
+        } else if (video.data3[f][channel][i] > max) {
+          video.data3[f][channel][i] = max;
         }
       }
     }
@@ -459,7 +459,7 @@ bool clip_channel(const string& input, const string& output, const string& mode,
     video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
     video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
 
-    if (channel > channels) {
+    if (channel > channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       video.close();
       return false;
@@ -486,7 +486,7 @@ bool clip_channel(const string& input, const string& output, const string& mode,
         static_cast<size_t>(width) * static_cast<size_t>(height);
 
     std::vector<unsigned char> frameBuffer(frameSize);
-    size_t pixelOffset = channelSize * (channel - 1);
+    size_t pixelOffset = channelSize * (channel);
     // iterate through every pixel of channel
     for (long i = 0; i < noFrames; ++i) {
       video.read(reinterpret_cast<char*>(frameBuffer.data()), frameSize);
@@ -511,17 +511,17 @@ bool clip_channel(const string& input, const string& output, const string& mode,
       return false;
     }
 
-    if (channel > video.channels) {
+    if (channel > video.channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       return false;
     }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        if (video.data3[f][channel - 1][i] < min) {
-          video.data3[f][channel - 1][i] = min;
-        } else if (video.data3[f][channel - 1][i] > max) {
-          video.data3[f][channel - 1][i] = max;
+        if (video.data3[f][channel][i] < min) {
+          video.data3[f][channel][i] = min;
+        } else if (video.data3[f][channel][i] > max) {
+          video.data3[f][channel][i] = max;
         }
       }
     }
@@ -549,7 +549,7 @@ bool scale_channel(const string& input, const string& output,
     video.read(reinterpret_cast<char*>(&noFrames), sizeof(noFrames));
     video.read(reinterpret_cast<char*>(&channels), sizeof(channels));
 
-    if (channel > channels) {
+    if (channel > channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       video.close();
       return false;
@@ -576,7 +576,7 @@ bool scale_channel(const string& input, const string& output,
         static_cast<size_t>(width) * static_cast<size_t>(height);
 
     std::vector<unsigned char> frameBuffer(frameSize);
-    size_t pixelOffset = channelSize * (channel - 1);
+    size_t pixelOffset = channelSize * (channel);
     // iterate through every pixel of channel
     for (long f = 0; f < noFrames; ++f) {
       video.read(reinterpret_cast<char*>(frameBuffer.data()), frameSize);
@@ -611,23 +611,22 @@ bool scale_channel(const string& input, const string& output,
       }
     }
 
-    if (channel > video.channels) {
+    if (channel > video.channels - 1) {
       cerr << "Error: Invalid channel number." << endl;
       return false;
     }
 
     for (long f = 0; f < video.noFrames; ++f) {
       for (size_t i = 0; i < video.width * video.height; ++i) {
-        if (video.data3[f][channel - 1][i] != 0) {
-          if (factor * video.data3[f][channel - 1][i] > 255) {
-            video.data3[f][channel - 1][i] = 255;
+        if (video.data3[f][channel][i] != 0) {
+          if (factor * video.data3[f][channel][i] > 255) {
+            video.data3[f][channel][i] = 255;
           } else if (factor <= 0) {
-            video.data3[f][channel - 1][i] = 0;
+            video.data3[f][channel][i] = 0;
           }
 
           else {
-            video.data3[f][channel - 1][i] =
-                video.data3[f][channel - 1][i] * factor;
+            video.data3[f][channel][i] = video.data3[f][channel][i] * factor;
           }
         }
       }

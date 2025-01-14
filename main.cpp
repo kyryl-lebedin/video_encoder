@@ -90,8 +90,13 @@ int main(int argc, char *argv[]) {
 
     ss >> tempChannel1 >> delimiter >> tempChannel2;
 
-    channel1 = static_cast<unsigned char>(tempChannel1) + 1;
-    channel2 = static_cast<unsigned char>(tempChannel2) + 1;
+    channel1 = static_cast<unsigned char>(tempChannel1);
+    channel2 = static_cast<unsigned char>(tempChannel2);
+
+    if (channel1 == channel2) {
+      cerr << "Error: Channel numbers must be different." << endl;
+      return 1;
+    }
 
     auto start = chrono::high_resolution_clock::now();
 
@@ -137,7 +142,7 @@ int main(int argc, char *argv[]) {
 
     // channel validity is checked in the clip_channel function
     if (!clip_channel(input, output, mode,
-                      (static_cast<unsigned char>(stoi(options[0])) + 1), min,
+                      (static_cast<unsigned char>(stoi(options[0]))), min,
                       max)) {
       return 1;
     }
@@ -147,9 +152,7 @@ int main(int argc, char *argv[]) {
     cout << "Time taken for clip_channel: " << elapsed.count() << " seconds"
          << endl;
 
-  }
-
-  else if (function == "scale_channel") {
+  } else if (function == "scale_channel") {
     if (options.size() != 2 ||
         !std::regex_match(options[0], std::regex(R"(\d+)")) ||
         !std::regex_match(options[1], std::regex(R"(-?\d+(\.\d+)?)"))) {
@@ -159,7 +162,7 @@ int main(int argc, char *argv[]) {
       return 1;
     }
 
-    unsigned char channel = static_cast<unsigned char>(stoi(options[0])) + 1;
+    unsigned char channel = static_cast<unsigned char>(stoi(options[0]));
     float scale_factor = stof(options[1]);
 
     auto start = chrono::high_resolution_clock::now();
@@ -174,9 +177,7 @@ int main(int argc, char *argv[]) {
     cout << "Time taken for scale_channel: " << elapsed.count() << " seconds"
          << endl;
 
-  }
-
-  else {
+  } else {
     cerr << "Unknown function. Use available functions: reverse, "
             "swap_channel, "
             "clip_channel, scale_channel.\n"
