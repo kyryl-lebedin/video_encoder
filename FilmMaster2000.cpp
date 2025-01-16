@@ -1,33 +1,16 @@
+// Copyright 2025 Kyryl Lebedin
 #include "FilmMaster2000.hpp"
 
-#include <immintrin.h>
-
 #include <algorithm>
-#include <chrono>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <thread>
 #include <vector>
 
 using namespace std;
 
-class ThrottledStream {
-  std::ifstream& stream;
-  int delayMs;
-
- public:
-  ThrottledStream(std::ifstream& stream, int delayMs)
-      : stream(stream), delayMs(delayMs) {}
-
-  void read(char* buffer, std::streamsize size) {
-    stream.read(buffer, size);
-    std::this_thread::sleep_for(std::chrono::milliseconds(delayMs));
-  }
-
-  bool good() const { return stream.good(); }
-};
+// balanced implementation to read binary video
 
 bool readbin(const string& filename, Video& video, Video::StorageMode mode) {
   video.mode = mode;
@@ -45,6 +28,8 @@ bool readbin(const string& filename, Video& video, Video::StorageMode mode) {
   binVideo.read(reinterpret_cast<char*>(&video.width), sizeof(video.width));
   binVideo.read(reinterpret_cast<char*>(&video.height), sizeof(video.height));
 
+  // depending on the mode specified, intialize respective data structure, 1-3D
+  // vector to hold pixels
   if (mode == Video::Mode1D) {
     size_t totalSize = static_cast<size_t>(video.noFrames) * video.channels *
                        video.width * video.height;
@@ -81,6 +66,7 @@ bool readbin(const string& filename, Video& video, Video::StorageMode mode) {
   return true;
 }
 
+// speed optimized read. uses only one read to read all the data.
 bool readbinS(const string& filename, Video& video, Video::StorageMode mode) {
   video.mode = mode;
 
@@ -144,6 +130,7 @@ bool readbinS(const string& filename, Video& video, Video::StorageMode mode) {
   return true;
 }
 
+// balanced implementation to write binary video
 bool writebin(const string& filename, Video& video, Video::StorageMode mode) {
   video.mode = mode;
 
@@ -185,6 +172,7 @@ bool writebin(const string& filename, Video& video, Video::StorageMode mode) {
   return true;
 }
 
+// speed optimized write. uses only one write to write all the pixel data.
 bool writebinS(const string& filename, Video& video, Video::StorageMode mode) {
   video.mode = mode;
 
@@ -193,15 +181,6 @@ bool writebinS(const string& filename, Video& video, Video::StorageMode mode) {
     cerr << "Error: Failed to create or open file " << filename << endl;
     return false;
   }
-
-  // binVideo.write(reinterpret_cast<const char*>(&video.noFrames),
-  //                sizeof(video.noFrames));
-  // binVideo.write(reinterpret_cast<const char*>(&video.channels),
-  //                sizeof(video.channels));
-  // binVideo.write(reinterpret_cast<const char*>(&video.width),
-  //                sizeof(video.width));
-  // binVideo.write(reinterpret_cast<const char*>(&video.height),
-  //                sizeof(video.height));
 
   size_t headerSize = sizeof(video.noFrames) + 3 * sizeof(unsigned char);
   vector<char> headerData(headerSize);
@@ -253,6 +232,7 @@ bool writebinS(const string& filename, Video& video, Video::StorageMode mode) {
 
 bool reverse(const string& input, const string& output, const string& mode) {
   if (mode == "-M") {
+    // read frame from end of input and write into output
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Error: Failed to open file " << input << endl;
@@ -283,7 +263,6 @@ bool reverse(const string& input, const string& output, const string& mode) {
     size_t frameSize = static_cast<size_t>(channels) *
                        static_cast<size_t>(width) * static_cast<size_t>(height);
 
-    // maybe just unisgned char
     vector<char> frameBuffer(frameSize);
 
     streamoff headerSize = sizeof(noFrames) + 3 * sizeof(unsigned char);
@@ -298,6 +277,8 @@ bool reverse(const string& input, const string& output, const string& mode) {
     video.close();
     reversedVideo.close();
   } else {
+    // same algorithm for speed and memory, only different read/write
+    // optimisation perform reverse operation on 2D vector wiht frames
     Video video;
     if (mode == "-S") {
       if (!readbinS(input, video, Video::Mode2D)) {
@@ -327,6 +308,7 @@ bool reverse(const string& input, const string& output, const string& mode) {
 bool swap_channel(const string& input, const string& output, const string& mode,
                   unsigned char channel1, unsigned char channel2) {
   if (mode == "-M") {
+    // read frame from input into 2D array, swap channels and write to output
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Error: Failed to open file " << input << endl;
@@ -382,6 +364,8 @@ bool swap_channel(const string& input, const string& output, const string& mode,
     swappedVideo.close();
 
   } else {
+    // same algorithm for speed and memory, only different read/write
+    // swap two channels in each frame in 3D vector
     Video video;
 
     if (mode == "-S") {
@@ -420,6 +404,8 @@ bool swap_channel(const string& input, const string& output, const string& mode,
 bool clip_channel(const string& input, const string& output, const string& mode,
                   unsigned char channel, unsigned char min, unsigned char max) {
   if (mode == "-M") {
+    // read frame from input into 2D array, clip specific channel and write to
+    // output
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Error: Failed to open file " << input << endl;
@@ -481,6 +467,8 @@ bool clip_channel(const string& input, const string& output, const string& mode,
     clippedVideo.close();
 
   } else {
+    // same algorithm for speed and memory, only different read/write
+    // clip channel in 3D vector
     Video video;
 
     if (mode == "-S") {
@@ -507,7 +495,7 @@ bool clip_channel(const string& input, const string& output, const string& mode,
         }
       }
     }
-    
+
     if (mode == "-S") {
       if (!writebinS(output, video, Video::Mode3D)) {
         return false;
@@ -517,9 +505,6 @@ bool clip_channel(const string& input, const string& output, const string& mode,
         return false;
       }
     }
-    
-
-
   }
   return true;
 }
@@ -527,6 +512,8 @@ bool clip_channel(const string& input, const string& output, const string& mode,
 bool scale_channel(const string& input, const string& output,
                    const string& mode, unsigned char channel, float factor) {
   if (mode == "-M") {
+    // read frame from input into 2D array, scale specific channel and write to
+    // output
     ifstream video(input, ios::binary);
     if (!video.is_open()) {
       cerr << "Error: Failed to open file " << input << endl;
@@ -569,11 +556,9 @@ bool scale_channel(const string& input, const string& output,
 
     std::vector<unsigned char> frameBuffer(frameSize);
     size_t pixelOffset = channelSize * (channel);
-    // iterate through every pixel of channel
     for (long f = 0; f < noFrames; ++f) {
       video.read(reinterpret_cast<char*>(frameBuffer.data()), frameSize);
       for (size_t j = pixelOffset; j < pixelOffset + channelSize; ++j) {
-        // read frame, access pixel in flatenned frame, starting at j
         if (frameBuffer[j] != 0) {
           if (factor * frameBuffer[j] > 255) {
             frameBuffer[j] = 255;
@@ -591,6 +576,8 @@ bool scale_channel(const string& input, const string& output,
     video.close();
     clippedVideo.close();
   } else {
+    // same algorithm for speed and memory, only different read/write
+    // scale channel in 3D vector
     Video video;
 
     if (mode == "-S") {

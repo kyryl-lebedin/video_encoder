@@ -1,3 +1,4 @@
+// Copyright 2025 Kyryl Lebedin
 #ifndef FILMMASTER2000_HPP
 #define FILMMASTER2000_HPP
 
@@ -13,6 +14,7 @@ struct Video {
   unsigned char width;
   // no memory is allocated to vectors in this initialization
   // the data struture for pixels will be chosen upon function call
+  // memory will be allocated once vectors are resized
   vector<unsigned char> data1;
   vector<vector<unsigned char>> data2;
   vector<vector<vector<unsigned char>>> data3;

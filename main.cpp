@@ -1,3 +1,4 @@
+// Copyright 2025 Kyryl Lebedin
 #include <chrono>
 #include <iostream>
 #include <regex>
@@ -16,6 +17,8 @@ int main(int argc, char *argv[]) {
               << std::endl;
     return 1;
   }
+
+  // parsing input functionality
 
   string input = argv[1];
   string output = argv[2];
@@ -45,18 +48,9 @@ int main(int argc, char *argv[]) {
     options.push_back(argv[i]);
   }
 
-  // cout << "Input file: " << input << endl;
-  // cout << "Output file: " << output << endl;
-  // cout << "Mode: " << (mode.empty() ? "-V" : mode) << endl;
-  // cout << "Function: " << function << endl;
-  // cout << "Options: ";
-  // for (const string &opt : options) {
-  //   cout << opt << " ";
-  // }
-  // cout << endl;
-  // cout << options[0] << endl;
-
+  // each code block additionaly parses input and runs the function
   if (function == "reverse") {
+    // measure time taken for fucntion to run
     auto start = chrono::high_resolution_clock::now();
     if (options.size() != 0) {
       cerr << "Invalid number of arguments for reverse function. Expected 0 "
